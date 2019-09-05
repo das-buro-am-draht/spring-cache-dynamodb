@@ -1,0 +1,7 @@
+language: java
+jdk:
+    - openjdk8
+script:
+    - mvn test-compile && mvn test jacoco:report
+after_success:
+    - mvn coveralls:report
