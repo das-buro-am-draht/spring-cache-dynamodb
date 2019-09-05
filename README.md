@@ -123,7 +123,7 @@ Spring Data Redis is Open Source software released under the [Apache 2.0 license
 
 [license-image]: https://img.shields.io/badge/license-Apache%202-blue.svg
 [license-url]: http://www.apache.org/licenses/LICENSE-2.0
-[travis-image]: https://travis-ci.org/bad-opensource/spring-cache-dynamodb.svg?branch=master
-[travis-url]: https://travis-ci.org/bad-opensource/spring-cache-dynamodb
+[travis-image]: https://travis-ci.com/bad-opensource/spring-cache-dynamodb.svg?branch=master
+[travis-url]: https://travis-ci.com/bad-opensource/spring-cache-dynamodb
 [coveralls-image]: https://coveralls.io/repos/github/bad-opensource/spring-cache-dynamodb/badge.svg
 [coveralls-url]: https://coveralls.io/github/bad-opensource/spring-cache-dynamodb
