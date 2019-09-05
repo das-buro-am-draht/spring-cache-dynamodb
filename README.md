@@ -14,28 +14,43 @@
 <dependency>
   <groupId>com.dasburo</groupId>
   <artifactId>spring-cache-dynamodb</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
-### Building from source
-It's not necessary to build from source, but if you want to try out the latest and greatest, 
-just clone the repository
-```bash
-$ git clone https://github.com/bad-opensource/spring-cache-dynamodb.git
-$ cd spring-cache-dynamodb
-```
-
-Spring Cache DynamoDB can be easily built with the [maven wrapper](https://github.com/takari/maven-wrapper). 
-You also need JDK 1.8.
-```bash
-$ ./mvnw clean install
-```
-
-If you want to build with the regular mvn command, 
-you will need [Maven v3.5.0](https://maven.apache.org/run-maven/index.html) or above.
-
 ## Usage
+
+### Quick start
+
+There is an autoconfiguration class that will setup a simple key-value cache for you, provided you have specified the following properties.
+
+#### Properties
+
+```properties
+# TTL (in seconds). Default is Duration.ZERO and disables TTL.
+spring.cache.dynamo.caches[0].ttl = 10s
+
+# Cache name for the @Cacheable annotation.
+spring.cache.dynamo.caches[0].cacheName = myCache
+
+# Value that indicates if the cache must be flushed on application start.
+spring.cache.dynamo.caches[0].flushOnBoot = true
+```
+
+#### YAML
+
+```yaml
+spring:
+  cache:
+    dynamo:
+      caches:
+        - # TTL.
+          ttl: 10s
+          # Cache name for the @Cacheable annotation.
+          cacheName: myCache
+          # Value that indicates if the cache table must be flushed when the application starts.
+          flushOnBoot: true
+```
 
 ### Custom configuration
 
@@ -61,62 +76,65 @@ public AmazonDynamoDB amazonDynamoDB(AWSCredentialsProvider amazonAWSCredentials
 
 @Bean
 public CacheManager cacheManager(AmazonDynamoDB amazonDynamoDB) {
-    DynamoCacheBuilder builder = DynamoCacheBuilder.newInstance(amazonDynamoDB, "myCache");
-    builder.withTTL(Duration.ofSeconds(10));
     List<DynamoCacheBuilder> cacheBuilders = new ArrayList<>();
-    cacheBuilders.add(builder);
+    cacheBuilders.add(DynamoCacheBuilder.newInstance("myCache", amazonDynamoDB)
+        .withTTL(Duration.ofSeconds(600)));
+      
     return new DynamoCacheManager(cacheBuilders);
 }
 ```
 
-### Autoconfiguration
+#### Serializers
 
-There is also an autoconfiguration class that will setup everything for you provided you have expressed the following properties.
+By default, the included `StringSerializer` is used. But it's also possible to define a custom Serializer 
+of type `DynamoSerializer` for each cache. 
 
-#### .properties
+### How to use the cache?
 
-```properties
-# TTL (in seconds). This property is optional and is disabled by default.
-spring.cache.dynamo.caches[0].ttl = 10s
+#### @Cacheable
 
-# Cache name for the @Cacheable annotation.
-spring.cache.dynamo.caches[0].cacheName = myCache
+After the cache has been configured, you can use the `Cacheable` [annotation](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html). 
+In the following example, the cache "myCache" is used like this:
 
-# Value that indicates if the cache must be flushed on application start.
-spring.cache.dynamo.caches[0].flushOnBoot = true
+```java
+@Cacheable(value = "myCache", key = "#id")
+public Data getData(String id) {
+  // ...
+}
 ```
 
-#### YAML
+The `id` parameter is used as document identifier. 
+Note that the cache key must be of type `java.lang.String`.
+It is also possible to use [SpEL](https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions-beandef-annotation-based) to generate a combined key.
+
+The `Data` object will be stored in a DynamoDB table for future use (as the TTL has not expired). 
+Note that cache elements must be serializable (i.e. implement `java.io.Serializable`).
+
+#### @DynamoDBLockedCacheable
+
+This library also provides an annotation that works similar to the @Cacheable. 
+However, distributed access to a Cache key from different applications or instances is mutually exclusive.
+
+##### YAML
 
 ```yaml
 spring:
   cache:
     dynamo:
-      caches:
-        -
-      	  # TTL.
-          ttl: 10s
-          # Cache name for the @Cacheable annotation.
-          cacheName: myCache
-          # Value that indicates if the cache table must be flushed when the application starts.
-          flushOnBoot: true
+      lock:
+          # Delimiter used on a combined Cache key. Default: , (comma)
+          delimiter:
+          # Table name for distributed locking. Default: LockTable
+          tableName: 
+          # Default: 60 (in seconds)
+          leaseDuration:
+          # Default: 3 (in seconds)
+          heartratePeriod:
+          # Poll time to acquire lock. Default: 1 (in seconds)
+          refreshPeriod: 
+          # Additional time beyond leaseDuration. Defaults: 5 (in seconds)
+          additionalTimeToWaitForLock: 
 ```
-
-### How to use cache?
-
-After the cache has been configured, you can use the `Cacheable` [annotation](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html). In the following example, the cache "myCache" is used like this:
-
-```java
-@Cacheable(value = "myCache", key = "#id")
-public Model getModel(String id) {
-	// [...]
-}
-```
-
-The `id` parameter is used as document identifier. Note that the cache key must be of type `java.lang.String`.
-
-The `Model` object will be stored in a DynamoDB table for future use (as the TTL has not expired). Note that cache elements must be serializable (i.e. implement `java.io.Serializable`).
-
 ## License
 
 Spring Data Redis is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
