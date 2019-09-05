@@ -112,7 +112,7 @@ Note that cache elements must be serializable (i.e. implement `java.io.Serializa
 
 ## License
 
-Spring Data Redis is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
+Spring Data DynamoDB is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
 
 [license-image]: https://img.shields.io/badge/license-Apache%202-blue.svg
 [license-url]: http://www.apache.org/licenses/LICENSE-2.0
