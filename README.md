@@ -110,31 +110,6 @@ It is also possible to use [SpEL](https://docs.spring.io/spring/docs/current/spr
 The `Data` object will be stored in a DynamoDB table for future use (as the TTL has not expired). 
 Note that cache elements must be serializable (i.e. implement `java.io.Serializable`).
 
-#### @DynamoDBLockedCacheable
-
-This library also provides an annotation that works similar to the @Cacheable. 
-However, distributed access to a Cache key from different applications or instances is mutually exclusive.
-
-##### YAML
-
-```yaml
-spring:
-  cache:
-    dynamo:
-      lock:
-          # Delimiter used on a combined Cache key. Default: , (comma)
-          delimiter:
-          # Table name for distributed locking. Default: LockTable
-          tableName: 
-          # Default: 60 (in seconds)
-          leaseDuration:
-          # Default: 3 (in seconds)
-          heartratePeriod:
-          # Poll time to acquire lock. Default: 1 (in seconds)
-          refreshPeriod: 
-          # Additional time beyond leaseDuration. Defaults: 5 (in seconds)
-          additionalTimeToWaitForLock: 
-```
 ## License
 
 Spring Data Redis is Open Source software released under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
