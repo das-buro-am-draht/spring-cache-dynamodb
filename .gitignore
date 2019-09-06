@@ -43,9 +43,6 @@ native-libs/**
 # CMake
 cmake-build-*/
 
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
-
 # File-based project format
 *.iws
 
@@ -132,8 +129,6 @@ hs_err_pid*
 # *.ipr
 
 # CMake
-
-# Mongo Explorer plugin
 
 # File-based project format
 
