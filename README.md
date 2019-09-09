@@ -27,7 +27,7 @@ To integrate this Git repository into your project, simply follow these 2 steps 
 <dependency>
     <groupId>com.github.bad-opensource</groupId>
     <artifactId>spring-cache-dynamodb</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
 </dependency>
 ```
 
