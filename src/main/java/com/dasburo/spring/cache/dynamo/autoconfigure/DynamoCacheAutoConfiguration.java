@@ -17,6 +17,8 @@ package com.dasburo.spring.cache.dynamo.autoconfigure;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.dasburo.spring.cache.dynamo.DynamoCacheBuilder;
 import com.dasburo.spring.cache.dynamo.DynamoCacheManager;
+import com.dasburo.spring.cache.dynamo.DynamoCacheWriter;
+import com.dasburo.spring.cache.dynamo.serializer.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -77,6 +79,8 @@ public class DynamoCacheAutoConfiguration {
             .withFlushOnBoot(dynamoCacheProperties.isFlushOnBoot())
             .withReadCapacityUnit(dynamoCacheProperties.getReadCapacityUnits())
             .withWriteCapacityUnit(dynamoCacheProperties.getWriteCapacityUnits())
+            .withSerializer(new StringSerializer())
+            .withWriter(DynamoCacheWriter.nonLockingDynamoCacheWriter(dynamoTemplate))
         );
       }
     }

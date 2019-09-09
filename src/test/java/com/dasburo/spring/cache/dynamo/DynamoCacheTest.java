@@ -14,8 +14,8 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
+import com.dasburo.spring.cache.dynamo.helper.Address;
 import com.dasburo.spring.cache.dynamo.serializer.Jackson2JsonSerializer;
-import com.dasburo.spring.cache.dynamo.serializer.StringSerializer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 public class DynamoCacheTest {
 
   private static final String CACHE_NAME = "cache";
-  private static final Duration TTL = Duration.ZERO;
+  private static final Duration TTL = Duration.ofSeconds(10);
 
   @ClassRule
   public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
@@ -55,6 +55,7 @@ public class DynamoCacheTest {
     writer = spy(writer);
 
     DynamoCacheConfiguration config = DynamoCacheConfiguration.defaultCacheConfig();
+    config.setTtl(TTL);
     config.setFlushOnBoot(true);
 
     cache = new DynamoCache(CACHE_NAME, writer, config);
