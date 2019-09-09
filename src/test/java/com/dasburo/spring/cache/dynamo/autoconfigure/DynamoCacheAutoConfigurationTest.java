@@ -37,6 +37,8 @@ public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
   private static final String CACHE_NAME = "cache";
   private static final boolean FLUSH_ON_BOOT = false;
   private static final Duration TTL = Duration.ofSeconds(30);
+  private static final Long READ_CAPACITY_UNITS = 1L;
+  private static final Long WRITE_CAPACITY_UNITS = 1L;
 
   @ClassRule
   public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
@@ -50,7 +52,9 @@ public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
       new Class<?>[]{DynamoCacheAutoConfiguration.class},
       "spring.cache.dynamo.caches[0].ttl:" + TTL,
       "spring.cache.dynamo.caches[0].cacheName:" + CACHE_NAME,
-      "spring.cache.dynamo.caches[0].flushOnBoot:" + FLUSH_ON_BOOT
+      "spring.cache.dynamo.caches[0].flushOnBoot:" + FLUSH_ON_BOOT,
+      "spring.cache.dynamo.caches[0].readCapacityUnits:" + READ_CAPACITY_UNITS,
+      "spring.cache.dynamo.caches[0].writeCapacityUnits:" + WRITE_CAPACITY_UNITS
     );
   }
 

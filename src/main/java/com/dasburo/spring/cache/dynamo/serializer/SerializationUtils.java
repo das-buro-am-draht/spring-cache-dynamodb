@@ -18,8 +18,6 @@ import org.springframework.lang.Nullable;
 
 public abstract class SerializationUtils {
 
-  static final byte[] EMPTY_ARRAY = new byte[0];
-
   private SerializationUtils() {
     throw new IllegalStateException("Utility class");
   }

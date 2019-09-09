@@ -44,7 +44,7 @@ public class DynamoCacheBuilder {
     Assert.hasText(cacheName, "'cacheName' must not be null and must contain at least one non-whitespace character.");
 
     this.cacheName = cacheName;
-    this.writer = new DefaultDynamoCacheWriter(dynamoTemplate);
+    this.writer = DynamoCacheWriter.nonLockingDynamoCacheWriter(dynamoTemplate);
     this.cacheConfig = DynamoCacheConfiguration.defaultCacheConfig();
   }
 
@@ -121,6 +121,18 @@ public class DynamoCacheBuilder {
    */
   public DynamoCacheBuilder withSerializer(DynamoSerializer serializer) {
     cacheConfig.setSerializer(serializer);
+    return this;
+  }
+
+  /**
+   * Give a {@link DynamoCacheWriter} to the cache to be built.
+   * Defaults to {@link DefaultDynamoCacheWriter}.
+   *
+   * @param writer a writer doing the actual cache operations.
+   * @return this buzilder for chaining.
+   */
+  public DynamoCacheBuilder withWriter(DynamoCacheWriter writer) {
+    this.writer = writer;
     return this;
   }
 

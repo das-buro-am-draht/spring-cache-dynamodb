@@ -14,26 +14,20 @@
  */
 package com.dasburo.spring.cache.dynamo.serializer;
 
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-public class GZipSerializerTest {
+import static org.junit.Assert.assertTrue;
 
-  private GZipSerializer serializer;
+public class SerializationUtilsTest {
 
-  @Before
-  public void setup() {
-    serializer = new GZipSerializer<>(new StringSerializer());
+  @Test
+  public void isEmptyOnNullTest() {
+    assertTrue(SerializationUtils.isEmpty(null));
   }
 
   @Test
-  public void testGZipSerializer() {
-    Assert.assertEquals("test", serializer.deserialize(serializer.serialize("test")));
+  public void isEmptyOnEmptyArrayTest() {
+    assertTrue(SerializationUtils.isEmpty(new byte[0]));
   }
 
-  @Test
-  public void testGZipSerializer_ShouldReturnNullWhenSerializingNull() {
-    Assert.assertNull(serializer.deserialize(serializer.serialize(null)));
-  }
 }

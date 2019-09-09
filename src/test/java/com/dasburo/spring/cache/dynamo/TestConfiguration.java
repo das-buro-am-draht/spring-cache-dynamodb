@@ -61,7 +61,7 @@ public class TestConfiguration {
 
   @Bean
   public DynamoCacheWriter dynamoCacheWriter(AmazonDynamoDB amazonDynamoDB) {
-    return new DefaultDynamoCacheWriter(amazonDynamoDB);
+    return DynamoCacheWriter.lockingDynamoCacheWriter(amazonDynamoDB);
   }
 
 }

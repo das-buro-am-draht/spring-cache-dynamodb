@@ -126,9 +126,7 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     Assert.notNull(key, "Key must not be null!");
 
     execute(name, connection -> {
-      dynamoTemplate.deleteItem(new DeleteItemRequest()
-        .withTableName(name)
-        .withKey(Collections.singletonMap(ATTRIBUTE_KEY, new AttributeValue(key))));
+      removeInternal(name, key);
       return "OK";
     });
   }
@@ -226,19 +224,29 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     dynamoTemplate.putItem(putItemRequest);
   }
 
+  private void removeInternal(String name, String key) {
+    dynamoTemplate.deleteItem(new DeleteItemRequest()
+      .withTableName(name)
+      .withKey(Collections.singletonMap(ATTRIBUTE_KEY, new AttributeValue(key))));
+  }
+
   private void doLock(String name) {
     // TODO should a ttl be provided for locking?
-    putInternal(name, createCacheLockKey(name), new byte[0], null);
+    putInternal(name, createCacheLockKey(name), "1".getBytes(), null);
   }
 
   private void doUnlock(String name) {
-    remove(name, createCacheLockKey(name));
+    try {
+      removeInternal(name, createCacheLockKey(name));
+    } catch (ResourceNotFoundException e) {
+      // ignore
+    }
   }
 
   private boolean doCheckLock(String name) {
     try {
       getInternal(name, createCacheLockKey(name));
-    } catch (NoSuchElementException e) {
+    } catch (NoSuchElementException | ResourceNotFoundException e) {
       return false;
     }
     return true;
