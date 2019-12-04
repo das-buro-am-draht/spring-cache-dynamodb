@@ -23,7 +23,8 @@ import java.time.Duration;
 
 /**
  * {@link DynamoCacheWriter} provides low level access to DynamoDB commands ({@code PUT, GET, ...}) used for
- * caching. <br />
+ * caching.
+ * <p>
  * The {@link DynamoCacheWriter} is responsible for writing / reading binary data to / from DynamoDB.
  *
  * @author Georg Zimmermann

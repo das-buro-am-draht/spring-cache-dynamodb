@@ -8,26 +8,13 @@
 
 ## Install
 
-[![](https://jitpack.io/v/bad-opensource/spring-cache-dynamodb.svg)](https://jitpack.io/#bad-opensource/spring-cache-dynamodb)
+To integrate this Git repository into your project, simply add the maven dependency
 
-To integrate this Git repository into your project, simply follow these 2 steps (example for Maven)
-
-**Step 1:** Add the JitPack repository to your build file
-```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-```
-
-**Step 2:** Add the dependency
 ```xml
 <dependency>
-    <groupId>com.github.bad-opensource</groupId>
+    <groupId>com.dasburo</groupId>
     <artifactId>spring-cache-dynamodb</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
 </dependency>
 ```
 

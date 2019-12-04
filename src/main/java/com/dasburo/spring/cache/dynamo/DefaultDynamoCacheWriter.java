@@ -31,7 +31,8 @@ import java.util.function.Function;
 
 /**
  * {@link DynamoCacheWriter} implementation capable of reading/writing binary data from/to DynamoDB in {@literal standalone}
- * and {@literal cluster} environments. Works upon a given {@link AmazonDynamoDB} holds the actual connection. <br />
+ * and {@literal cluster} environments. Works upon a given {@link AmazonDynamoDB} holds the actual connection.
+ * <p>
  * {@link DefaultDynamoCacheWriter} can be used in
  * {@link DynamoCacheWriter#lockingDynamoCacheWriter(AmazonDynamoDB) locking} or
  * {@link DynamoCacheWriter#nonLockingDynamoCacheWriter(AmazonDynamoDB) non-locking} mode. While
