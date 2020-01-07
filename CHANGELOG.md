@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.3] - 2019-12-18
+### Fixed 
+- fix datatype used for ttl [@dnltsk](https://github.com/dnltsk)
+
 ## [0.9.2] - 2019-12-04
 ### Changed 
 - fix javadoc and maven-gpg-plugin configuration by [@derXear](https://github.com/derXear)
@@ -19,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - initial code base by [@derXear](https://github.com/derXear)
 
 [Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.2...HEAD
+[0.9.3]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.0
