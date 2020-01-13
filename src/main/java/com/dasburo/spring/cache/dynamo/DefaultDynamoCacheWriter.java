@@ -216,7 +216,7 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     }
 
     if (shouldExpireWithin(ttl)) {
-      attributeValues.put(ATTRIBUTE_TTL, new AttributeValue().withN(String.valueOf(Instant.now().toEpochMilli() + ttl.toMillis())));
+      attributeValues.put(ATTRIBUTE_TTL, new AttributeValue().withN(String.valueOf(Instant.now().plus(ttl).getEpochSecond())));
     }
 
     PutItemRequest putItemRequest = new PutItemRequest()
