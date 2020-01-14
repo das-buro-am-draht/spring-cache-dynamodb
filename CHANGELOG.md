@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.4] - 2020-01-14
+### Fixed 
+- fix unit used for ttl from EpochMillis to EpochSeconds [@dnltsk](https://github.com/dnltsk)
+
 ## [0.9.3] - 2019-12-18
 ### Fixed 
 - fix datatype used for ttl [@dnltsk](https://github.com/dnltsk)
@@ -22,7 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added 
 - initial code base by [@derXear](https://github.com/derXear)
 
-[Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.4...HEAD
+[0.9.4]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.0...v0.9.1
