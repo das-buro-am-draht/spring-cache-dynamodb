@@ -15,6 +15,9 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttribute;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -22,11 +25,14 @@ import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.util.Assert;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 /**
- * Spring {@link org.springframework.cache.Cache} adapter implementation
+ * Spring {@link Cache} adapter implementation
  * on top of Amazons DynamoDB.
  *
  * @author Georg Zimmermann
@@ -38,6 +44,8 @@ public class DynamoCache implements Cache {
   private final String cacheName;
   private final DynamoCacheWriter writer;
   private final DynamoCacheConfiguration cacheConfig;
+
+  private RootAttributeReader rootAttributeReader = new RootAttributeReader();
 
   /**
    * Constructor.
@@ -152,14 +160,14 @@ public class DynamoCache implements Cache {
   @Override
   public void put(Object key, Object value) {
     Assert.isTrue(key instanceof String, "'key' must be an instance of 'java.lang.String'.");
-    writer.put(cacheName, (String) key, serialize(value), cacheConfig.getTtl());
+    writer.put(cacheName, (String) key, serialize(value), cacheConfig.getTtl(), readRootAttributes(cacheConfig.getRootAttributeConfigs(), value));
   }
 
   @Override
   public ValueWrapper putIfAbsent(Object key, Object value) {
     Assert.isTrue(key instanceof String, "'key' must be an instance of 'java.lang.String'.");
 
-    byte[] result = writer.putIfAbsent(cacheName, (String) key, serialize(value), cacheConfig.getTtl());
+    byte[] result = writer.putIfAbsent(cacheName, (String) key, serialize(value), cacheConfig.getTtl(), readRootAttributes(cacheConfig.getRootAttributeConfigs(), value));
     if (result != null) {
       LOGGER.debug(String.format("Key: %s already exists in the cache. Element will not be replaced.", key));
       return new SimpleValueWrapper(deserialize(result));
@@ -189,5 +197,12 @@ public class DynamoCache implements Cache {
 
   private byte[] serialize(Object value) {
     return cacheConfig.getSerializer().serialize(value);
+  }
+
+  private List<RootAttribute> readRootAttributes(List<RootAttributeConfig> rootAttributeConfigs, Object value) {
+    return rootAttributeConfigs.stream()
+        .map(rootAttributeConfig -> rootAttributeReader.readRootAttribute(rootAttributeConfig, value))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 }

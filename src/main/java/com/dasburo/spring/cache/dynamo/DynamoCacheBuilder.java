@@ -16,10 +16,12 @@
 package com.dasburo.spring.cache.dynamo;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
 import org.springframework.util.Assert;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * A builder for {@link DynamoCache} instance.
@@ -125,11 +127,23 @@ public class DynamoCacheBuilder {
   }
 
   /**
+   * Give a {@link RootAttributeConfig} to the cache to be built.
+   * Defaults to empty {@link List}.
+   *
+   * @param rootAttributeConfigs additional attributes written into the root level
+   * @return this builder for chaining.
+   */
+  public DynamoCacheBuilder withRootAttributes(List<RootAttributeConfig> rootAttributeConfigs) {
+    this.cacheConfig.setRootAttributeConfigs(rootAttributeConfigs);
+    return this;
+  }
+
+  /**
    * Give a {@link DynamoCacheWriter} to the cache to be built.
    * Defaults to {@link DefaultDynamoCacheWriter}.
    *
    * @param writer a writer doing the actual cache operations.
-   * @return this buzilder for chaining.
+   * @return this builder for chaining.
    */
   public DynamoCacheBuilder withWriter(DynamoCacheWriter writer) {
     this.writer = writer;

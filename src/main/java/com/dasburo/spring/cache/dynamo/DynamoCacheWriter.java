@@ -16,10 +16,12 @@
 package com.dasburo.spring.cache.dynamo;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttribute;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * {@link DynamoCacheWriter} provides low level access to DynamoDB commands ({@code PUT, GET, ...}) used for
@@ -79,12 +81,13 @@ public interface DynamoCacheWriter {
    * <br><b>Note:</b> The values size must be less than 400 KB.
    * As this is the maximum element size of a binary in Amazons DynamoDB.
    *
-   * @param name  The cache name must not be {@literal null}.
-   * @param key   The key for the cache entry. Must not be {@literal null}.
-   * @param value The value stored for the key. Must not be {@literal null}.
-   * @param ttl   Optional expiration time. Can be {@literal null}.
+   * @param name           The cache name must not be {@literal null}.
+   * @param key            The key for the cache entry. Must not be {@literal null}.
+   * @param value          The value stored for the key. Must not be {@literal null}.
+   * @param ttl            Optional expiration time. Can be {@literal null}.
+   * @param rootAttributes Optional additional root attributes. Can be {@literal null}.
    */
-  void put(String name, String key, byte[] value, @Nullable Duration ttl);
+  void put(String name, String key, byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes);
 
   /**
    * Get the binary value representation from Dynamo stored for the given key.
@@ -101,14 +104,15 @@ public interface DynamoCacheWriter {
    * <br><b>Note:</b> The values size must be less than 400 KB.
    * As this is the maximum element size of a binary in Amazons DynamoDB.
    *
-   * @param name  The cache name must not be {@literal null}.
-   * @param key   The key for the cache entry. Must not be {@literal null}.
-   * @param value The value stored for the key. Must not be {@literal null}.
-   * @param ttl   Optional expiration time. Can be {@literal null}.
+   * @param name           The cache name must not be {@literal null}.
+   * @param key            The key for the cache entry. Must not be {@literal null}.
+   * @param value          The value stored for the key. Must not be {@literal null}.
+   * @param ttl            Optional expiration time. Can be {@literal null}.
+   * @param rootAttributes Optional additional root attributes. Can be {@literal null}.
    * @return {@literal null} if the value has been written, the value stored for the key if it already exists.
    */
   @Nullable
-  byte[] putIfAbsent(String name, String key, byte[] value, @Nullable Duration ttl);
+  byte[] putIfAbsent(String name, String key, byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes);
 
   /**
    * Remove the given key from Dynamo.
