@@ -16,8 +16,23 @@
 package com.dasburo.spring.cache.dynamo;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.*;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemResult;
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.KeyType;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.TimeToLiveSpecification;
+import com.amazonaws.services.dynamodbv2.model.UpdateTimeToLiveRequest;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttribute;
 import com.dasburo.spring.cache.dynamo.util.ByteUtils;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.lang.Nullable;
@@ -26,7 +41,12 @@ import org.springframework.util.Assert;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 /**
@@ -43,11 +63,11 @@ import java.util.function.Function;
  *
  * @author Georg Zimmermann
  */
-class DefaultDynamoCacheWriter implements DynamoCacheWriter {
+public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
 
-  private static final String ATTRIBUTE_KEY = "key";
-  private static final String ATTRIBUTE_VALUE = "value";
-  private static final String ATTRIBUTE_TTL = "ttl";
+  public static final String ATTRIBUTE_KEY = "key";
+  public static final String ATTRIBUTE_VALUE = "value";
+  public static final String ATTRIBUTE_TTL = "ttl";
 
   private final AmazonDynamoDB dynamoTemplate;
   private final Duration sleepTime;
@@ -78,12 +98,12 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
   }
 
   @Override
-  public void put(String name, String key, byte[] value, @Nullable Duration ttl) {
+  public void put(String name, String key, byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes) {
     Assert.notNull(name, "Name must not be null!");
     Assert.notNull(key, "Key must not be null!");
 
     execute(name, connection -> {
-      putInternal(name, key, value, ttl);
+      putInternal(name, key, value, ttl, rootAttributes);
 
       return "OK";
     });
@@ -98,7 +118,7 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
   }
 
   @Override
-  public byte[] putIfAbsent(String name, String key, @Nullable byte[] value, @Nullable Duration ttl) {
+  public byte[] putIfAbsent(String name, String key, @Nullable byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes) {
     Assert.notNull(name, "Name must not be null!");
     Assert.notNull(key, "Key must not be null!");
 
@@ -111,7 +131,7 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
       try {
         return getInternal(name, key);
       } catch (NoSuchElementException e) {
-        putInternal(name, key, value, ttl);
+        putInternal(name, key, value, ttl, rootAttributes);
       } finally {
         if (isLockingCacheWriter()) {
           doUnlock(name);
@@ -205,7 +225,7 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     }
   }
 
-  private void putInternal(String name, String key, @Nullable byte[] value, @Nullable Duration ttl) {
+  private void putInternal(String name, String key, @Nullable byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes) {
     Map<String, AttributeValue> attributeValues = new HashMap<>();
     attributeValues.put(ATTRIBUTE_KEY, new AttributeValue().withS(key));
 
@@ -217,6 +237,12 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
 
     if (shouldExpireWithin(ttl)) {
       attributeValues.put(ATTRIBUTE_TTL, new AttributeValue().withN(String.valueOf(Instant.now().plus(ttl).getEpochSecond())));
+    }
+
+    if (rootAttributes != null) {
+      rootAttributes.forEach(rootAttribute -> {
+        attributeValues.put(rootAttribute.getName(), rootAttribute.getAttributeValue());
+      });
     }
 
     PutItemRequest putItemRequest = new PutItemRequest()
@@ -233,7 +259,7 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
 
   private void doLock(String name) {
     // TODO should a ttl be provided for locking?
-    putInternal(name, createCacheLockKey(name), "1".getBytes(), null);
+    putInternal(name, createCacheLockKey(name), "1".getBytes(), null, null);
   }
 
   private void doUnlock(String name) {

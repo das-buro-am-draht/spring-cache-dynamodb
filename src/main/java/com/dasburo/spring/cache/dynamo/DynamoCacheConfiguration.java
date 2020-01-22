@@ -14,10 +14,14 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
 import com.dasburo.spring.cache.dynamo.serializer.StringSerializer;
 
 import java.time.Duration;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 /**
  * A configuration container for a {@link DynamoCache} instance.
@@ -31,17 +35,19 @@ public class DynamoCacheConfiguration {
   private Long readCapacityUnits;
   private Long writeCapacityUnits;
   private DynamoSerializer serializer;
+  private List<RootAttributeConfig> rootAttributeConfigs;
 
-  private DynamoCacheConfiguration(Duration ttl, boolean flushOnBoot, Long readCapacityUnits, Long writeCapacityUnits, DynamoSerializer serializer) {
+  private DynamoCacheConfiguration(Duration ttl, boolean flushOnBoot, Long readCapacityUnits, Long writeCapacityUnits, DynamoSerializer serializer, List<RootAttributeConfig> rootAttributeConfigs) {
     this.ttl = ttl;
     this.flushOnBoot = flushOnBoot;
     this.readCapacityUnits = readCapacityUnits;
     this.writeCapacityUnits = writeCapacityUnits;
     this.serializer = serializer;
+    this.rootAttributeConfigs = rootAttributeConfigs;
   }
 
   public static DynamoCacheConfiguration defaultCacheConfig() {
-    return new DynamoCacheConfiguration(Duration.ZERO, false, 1L, 1L, new StringSerializer());
+    return new DynamoCacheConfiguration(Duration.ZERO, false, 1L, 1L, new StringSerializer(), emptyList());
   }
 
   public Duration getTtl() {
@@ -82,5 +88,13 @@ public class DynamoCacheConfiguration {
 
   public void setSerializer(DynamoSerializer serializer) {
     this.serializer = serializer;
+  }
+
+  public List<RootAttributeConfig> getRootAttributeConfigs() {
+    return rootAttributeConfigs;
+  }
+
+  public void setRootAttributeConfigs(List<RootAttributeConfig> rootAttributeConfigs) {
+    this.rootAttributeConfigs = rootAttributeConfigs;
   }
 }
