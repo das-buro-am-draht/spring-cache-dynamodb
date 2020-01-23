@@ -15,6 +15,7 @@
 package com.dasburo.spring.cache.dynamo;
 
 import com.dasburo.spring.cache.dynamo.helper.Address;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.Jackson2JsonSerializer;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,7 +29,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
 
-import static org.mockito.Mockito.*;
+import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
+import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for {@link DynamoCache}.
@@ -292,4 +298,22 @@ public class DynamoCacheTest {
     Assert.assertNotNull(addressCache.get(key));
     Assert.assertEquals(addressCache.get(key).get(), address);
   }
+
+  @Test
+  public void putWithRootAttributeConfigCanBeLoadedAgain() {
+    final String key = "key";
+
+    Address address = new Address("someStreet", 1);
+    DynamoCacheConfiguration config = DynamoCacheConfiguration.defaultCacheConfig();
+    config.setSerializer(new Jackson2JsonSerializer<>(Address.class));
+    config.setRootAttributes(singletonList(new RootAttributeConfig("street", S)));
+
+    Cache addressCache = new DynamoCache(CACHE_NAME, writer, config);
+
+    addressCache.put(key, address);
+
+    Assert.assertNotNull(addressCache.get(key));
+    Assert.assertEquals(addressCache.get(key).get(), address);
+  }
+
 }
