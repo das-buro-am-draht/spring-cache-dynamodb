@@ -14,6 +14,9 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.dasburo.spring.cache.dynamo.helper.Address;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.Jackson2JsonSerializer;
@@ -28,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
+import java.util.HashMap;
 
 import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
 import static java.util.Collections.singletonList;
@@ -53,6 +57,9 @@ public class DynamoCacheTest {
 
   @Autowired
   private DynamoCacheWriter writer;
+
+  @Autowired
+  private AmazonDynamoDB ddbClient;
 
   private DynamoCache cache;
 
@@ -300,20 +307,49 @@ public class DynamoCacheTest {
   }
 
   @Test
-  public void putWithRootAttributeConfigCanBeLoadedAgain() {
-    final String key = "key";
-
+  public void putWithRootAttributeConfigDoesNotInfluenceTheCoreFunctionality() {
+    //given
+    final String itemKey = "key";
+    final RootAttributeConfig streetRootAttribute = new RootAttributeConfig("street", S);
     Address address = new Address("someStreet", 1);
+
     DynamoCacheConfiguration config = DynamoCacheConfiguration.defaultCacheConfig();
     config.setSerializer(new Jackson2JsonSerializer<>(Address.class));
-    config.setRootAttributes(singletonList(new RootAttributeConfig("street", S)));
+    config.setRootAttributes(singletonList(streetRootAttribute));
 
     Cache addressCache = new DynamoCache(CACHE_NAME, writer, config);
 
-    addressCache.put(key, address);
+    //when
+    addressCache.put(itemKey, address);
 
-    Assert.assertNotNull(addressCache.get(key));
-    Assert.assertEquals(addressCache.get(key).get(), address);
+    //then
+    Assert.assertNotNull(addressCache.get(itemKey));
+    Assert.assertEquals(addressCache.get(itemKey).get(), address);
   }
 
+  @Test
+  public void putWithRootAttributePersistsAdditionalRootAttributeOnDynamoDbTable() {
+    //given
+    final String itemKey = "key";
+    final RootAttributeConfig streetRootAttribute = new RootAttributeConfig("street", S);
+    Address address = new Address("someStreet", 1);
+
+    DynamoCacheConfiguration config = DynamoCacheConfiguration.defaultCacheConfig();
+    config.setSerializer(new Jackson2JsonSerializer<>(Address.class));
+    config.setRootAttributes(singletonList(streetRootAttribute));
+
+    Cache addressCache = new DynamoCache(CACHE_NAME, writer, config);
+
+    //when
+    addressCache.put(itemKey, address);
+
+    //then
+    HashMap<String, AttributeValue> ddbKey = new HashMap<>();
+    ddbKey.put(DefaultDynamoCacheWriter.ATTRIBUTE_KEY, new AttributeValue(itemKey));
+
+    GetItemResult ddbItem = ddbClient.getItem(CACHE_NAME, ddbKey);
+    AttributeValue storedRootAttribute = ddbItem.getItem().get(streetRootAttribute.getName());
+
+    Assert.assertEquals(storedRootAttribute.getS(), address.getStreet());
+  }
 }
