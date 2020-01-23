@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class RootAttributeReaderTest {
 
@@ -137,5 +138,32 @@ public class RootAttributeReaderTest {
     //then
     assertEquals("stringField", rootAttribute.getName());
     assertEquals("dummy-text", rootAttribute.getAttributeValue().getS());
+  }
+
+  @Test
+  public void testRootAttributeReader_UnknownFieldIsGetsIgnored() {
+    //given
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("unknownField", ScalarAttributeType.S);
+    SampleTestClass sampleInstance = new SampleTestClass();
+
+    //when
+    RootAttribute rootAttribute = rootAttributeReader.readRootAttribute(rootAttributeConfig, sampleInstance);
+
+    //then
+    assertNull(rootAttribute);
+  }
+
+  @Test
+  public void testRootAttributeReader_NullValueOfKnownFieldsGetsIgnored() {
+    //given
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", ScalarAttributeType.S);
+    SampleTestClass sampleInstance = new SampleTestClass();
+    sampleInstance.setStringField(null);
+
+    //when
+    RootAttribute rootAttribute = rootAttributeReader.readRootAttribute(rootAttributeConfig, sampleInstance);
+
+    //then
+    assertNull(rootAttribute);
   }
 }
