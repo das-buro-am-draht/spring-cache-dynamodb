@@ -80,6 +80,7 @@ public class DynamoCacheAutoConfiguration {
             .withReadCapacityUnit(dynamoCacheProperties.getReadCapacityUnits())
             .withWriteCapacityUnit(dynamoCacheProperties.getWriteCapacityUnits())
             .withSerializer(new StringSerializer())
+            .withRootAttributes(dynamoCacheProperties.getRootAttributes())
             .withWriter(DynamoCacheWriter.nonLockingDynamoCacheWriter(dynamoTemplate))
         );
       }
