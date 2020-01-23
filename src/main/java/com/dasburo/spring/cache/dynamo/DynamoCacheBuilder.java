@@ -134,7 +134,7 @@ public class DynamoCacheBuilder {
    * @return this builder for chaining.
    */
   public DynamoCacheBuilder withRootAttributes(List<RootAttributeConfig> rootAttributeConfigs) {
-    this.cacheConfig.setRootAttributeConfigs(rootAttributeConfigs);
+    this.cacheConfig.setRootAttributes(rootAttributeConfigs);
     return this;
   }
 

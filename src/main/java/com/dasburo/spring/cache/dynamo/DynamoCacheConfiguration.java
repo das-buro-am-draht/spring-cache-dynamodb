@@ -35,15 +35,15 @@ public class DynamoCacheConfiguration {
   private Long readCapacityUnits;
   private Long writeCapacityUnits;
   private DynamoSerializer serializer;
-  private List<RootAttributeConfig> rootAttributeConfigs;
+  private List<RootAttributeConfig> rootAttributes;
 
-  private DynamoCacheConfiguration(Duration ttl, boolean flushOnBoot, Long readCapacityUnits, Long writeCapacityUnits, DynamoSerializer serializer, List<RootAttributeConfig> rootAttributeConfigs) {
+  private DynamoCacheConfiguration(Duration ttl, boolean flushOnBoot, Long readCapacityUnits, Long writeCapacityUnits, DynamoSerializer serializer, List<RootAttributeConfig> rootAttributes) {
     this.ttl = ttl;
     this.flushOnBoot = flushOnBoot;
     this.readCapacityUnits = readCapacityUnits;
     this.writeCapacityUnits = writeCapacityUnits;
     this.serializer = serializer;
-    this.rootAttributeConfigs = rootAttributeConfigs;
+    this.rootAttributes = rootAttributes;
   }
 
   public static DynamoCacheConfiguration defaultCacheConfig() {
@@ -90,11 +90,11 @@ public class DynamoCacheConfiguration {
     this.serializer = serializer;
   }
 
-  public List<RootAttributeConfig> getRootAttributeConfigs() {
-    return rootAttributeConfigs;
+  public List<RootAttributeConfig> getRootAttributes() {
+    return rootAttributes;
   }
 
-  public void setRootAttributeConfigs(List<RootAttributeConfig> rootAttributeConfigs) {
-    this.rootAttributeConfigs = rootAttributeConfigs;
+  public void setRootAttributes(List<RootAttributeConfig> rootAttributes) {
+    this.rootAttributes = rootAttributes;
   }
 }

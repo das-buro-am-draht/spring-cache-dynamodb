@@ -157,17 +157,26 @@ public class DynamoCache implements Cache {
     return cacheConfig.getTtl();
   }
 
+  /**
+   * Returns the configuration of additional root attributes for this cache
+   *
+   * @return the rootAttributeConfigs value.
+   */
+  public final List<RootAttributeConfig> getRootAttributes() {
+    return cacheConfig.getRootAttributes();
+  }
+
   @Override
   public void put(Object key, Object value) {
     Assert.isTrue(key instanceof String, "'key' must be an instance of 'java.lang.String'.");
-    writer.put(cacheName, (String) key, serialize(value), cacheConfig.getTtl(), readRootAttributes(cacheConfig.getRootAttributeConfigs(), value));
+    writer.put(cacheName, (String) key, serialize(value), cacheConfig.getTtl(), readRootAttributes(cacheConfig.getRootAttributes(), value));
   }
 
   @Override
   public ValueWrapper putIfAbsent(Object key, Object value) {
     Assert.isTrue(key instanceof String, "'key' must be an instance of 'java.lang.String'.");
 
-    byte[] result = writer.putIfAbsent(cacheName, (String) key, serialize(value), cacheConfig.getTtl(), readRootAttributes(cacheConfig.getRootAttributeConfigs(), value));
+    byte[] result = writer.putIfAbsent(cacheName, (String) key, serialize(value), cacheConfig.getTtl(), readRootAttributes(cacheConfig.getRootAttributes(), value));
     if (result != null) {
       LOGGER.debug(String.format("Key: %s already exists in the cache. Element will not be replaced.", key));
       return new SimpleValueWrapper(deserialize(result));

@@ -15,8 +15,10 @@
 package com.dasburo.spring.cache.dynamo.autoconfigure;
 
 import com.dasburo.spring.cache.dynamo.DynamoCache;
+import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Properties for {@link DynamoCache}.
@@ -28,6 +30,7 @@ public class DynamoCacheProperties {
   private String cacheName;
   private boolean flushOnBoot;
   private Duration ttl;
+  private List<RootAttributeConfig> rootAttributes;
   private Long readCapacityUnits = 1L;
   private Long writeCapacityUnits = 1L;
 
@@ -53,6 +56,14 @@ public class DynamoCacheProperties {
 
   public void setTtl(Duration ttl) {
     this.ttl = ttl;
+  }
+
+  public List<RootAttributeConfig> getRootAttributes() {
+    return rootAttributes;
+  }
+
+  public void setRootAttributes(List<RootAttributeConfig> rootAttributes) {
+    this.rootAttributes = rootAttributes;
   }
 
   public Long getReadCapacityUnits() {
