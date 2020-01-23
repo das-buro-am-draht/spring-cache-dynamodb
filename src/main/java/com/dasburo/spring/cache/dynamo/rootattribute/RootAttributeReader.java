@@ -19,6 +19,9 @@ public class RootAttributeReader {
   public RootAttribute readRootAttribute(@NonNull RootAttributeConfig rootAttributeConfig, @NonNull Object object) {
     try {
       Object value = PropertyUtils.getProperty(object, rootAttributeConfig.getName());
+      if (value == null) {
+        return null;
+      }
       AttributeValue attributeValue = mapValueToAttributeValue(value, rootAttributeConfig.getType());
       return new RootAttribute(rootAttributeConfig.getName(), attributeValue);
     }
@@ -31,13 +34,13 @@ public class RootAttributeReader {
   @Nullable
   private AttributeValue mapValueToAttributeValue(@NonNull Object value, @NonNull ScalarAttributeType type) {
     switch (type) {
-      case S:
-        return new AttributeValue().withS(String.valueOf(value));
       case N:
         return new AttributeValue().withN(String.valueOf(value));
       case B:
         return new AttributeValue().withB((ByteBuffer) value);
+      case S:
+      default:
+        return new AttributeValue().withS(String.valueOf(value));
     }
-    return null;
   }
 }
