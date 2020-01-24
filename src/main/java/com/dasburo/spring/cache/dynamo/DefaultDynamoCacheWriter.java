@@ -240,9 +240,7 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     }
 
     if (rootAttributes != null) {
-      rootAttributes.forEach(rootAttribute -> {
-        attributeValues.put(rootAttribute.getName(), rootAttribute.getAttributeValue());
-      });
+      rootAttributes.forEach(rootAttribute -> attributeValues.put(rootAttribute.getName(), rootAttribute.getAttributeValue()));
     }
 
     PutItemRequest putItemRequest = new PutItemRequest()
