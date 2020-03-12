@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.5] - 2020-03-12
+### Changed 
+- the `DynamoDB::CreateTable` permission is not required anymore if the table already exist [@derXear](https://github.com/derXear)
+
 ## [0.9.4] - 2020-01-14
 ### Fixed 
 - fix unit used for ttl from EpochMillis to EpochSeconds [@dnltsk](https://github.com/dnltsk)
@@ -26,7 +30,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added 
 - initial code base by [@derXear](https://github.com/derXear)
 
-[Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.4...HEAD
+[Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.5...HEAD
+[0.9.5]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.1...v0.9.2
