@@ -169,9 +169,14 @@ class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     Assert.notNull(name, "Name must not be null!");
     Assert.notNull(ttl, "TTL must not be null! Use Duration.ZERO to disable TTL.");
 
-    boolean created = TableUtils.createTableIfNotExists(dynamoTemplate, createTableRequest(name, readCapacityUnits, writeCapacityUnits));
-    if (created && !ttl.isZero()) {
-      dynamoTemplate.updateTimeToLive(updateTimeToLiveRequest(name));
+    boolean created = false;
+    try {
+      dynamoTemplate.describeTable(name);
+    } catch(ResourceNotFoundException e) {
+      created = TableUtils.createTableIfNotExists(dynamoTemplate, createTableRequest(name, readCapacityUnits, writeCapacityUnits));
+      if (created && !ttl.isZero()) {
+        dynamoTemplate.updateTimeToLive(updateTimeToLiveRequest(name));
+      }
     }
     return created;
   }

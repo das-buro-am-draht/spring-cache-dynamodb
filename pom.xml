@@ -11,7 +11,7 @@
 
     <groupId>com.dasburo</groupId>
     <artifactId>spring-cache-dynamodb</artifactId>
-    <version>0.9.4</version>
+    <version>0.9.5</version>
 
     <name>Amazon DynamoDB for Spring Cache</name>
     <description>Spring Cache implementation based on Amazon DynamoDB</description>
