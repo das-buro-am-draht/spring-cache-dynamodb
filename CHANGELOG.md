@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.9.5] - 2020-03-12
 ### Changed 
-- the `DynamoDB::CreateTable` permission is not required anymore if the table already exist [@derXear](https://github.com/derXear)
+- the `DynamoDB::CreateTable` permission is not required anymore if the table already exist, 
+instead at least `DynamoDB::DescribeTable` is necessary [@derXear](https://github.com/derXear)
 
 ## [0.9.4] - 2020-01-14
 ### Fixed 
