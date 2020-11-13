@@ -14,7 +14,7 @@ To integrate this Git repository into your project, simply add the maven depende
 <dependency>
     <groupId>com.dasburo</groupId>
     <artifactId>spring-cache-dynamodb</artifactId>
-    <version>0.9.5</version>
+    <version>0.9.6</version>
 </dependency>
 ```
 

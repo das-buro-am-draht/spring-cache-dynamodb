@@ -11,7 +11,7 @@
 
     <groupId>com.dasburo</groupId>
     <artifactId>spring-cache-dynamodb</artifactId>
-    <version>0.9.5</version>
+    <version>0.9.6</version>
 
     <name>Amazon DynamoDB for Spring Cache</name>
     <description>Spring Cache implementation based on Amazon DynamoDB</description>
@@ -70,25 +70,13 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.scm.id>github</project.scm.id>
 
-        <version.dynamodb.local>1.11.477</version.dynamodb.local>
-        <version.dynamodb.java.sdk>1.11.623</version.dynamodb.java.sdk>
+        <version.dynamodb.local>1.13.5</version.dynamodb.local>
+        <version.dynamodb.java.sdk>1.11.899</version.dynamodb.java.sdk>
         <version.dynamodb.lock.client>1.1.0</version.dynamodb.lock.client>
-        <!--<version.spring.data.commons>2.1.9.RELEASE</version.spring.data.commons>-->
-        <!--<version.spring.dao>2.0.8</version.spring.dao>-->
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!--<dependency>-->
-                <!--<groupId>org.springframework.data</groupId>-->
-                <!--<artifactId>spring-data-commons</artifactId>-->
-                <!--<version>${version.spring.data.commons}</version>-->
-            <!--</dependency>-->
-            <!--<dependency>-->
-                <!--<groupId>org.springframework</groupId>-->
-                <!--<artifactId>spring-dao</artifactId>-->
-                <!--<version>${version.spring.dao}</version>-->
-            <!--</dependency>-->
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-dynamodb</artifactId>

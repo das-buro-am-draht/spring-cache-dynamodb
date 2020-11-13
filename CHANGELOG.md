@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.6] - 2020-11-13
+### Changed 
+- add getter for `DynamoCacheWriter` and `DynamoSerializer` in `DynamoCache` [@derXear](https://github.com/derXear)
+- update Amazon DynamoDB dependencies [@derXear](https://github.com/derXear)
+
 ## [0.9.5] - 2020-03-12
 ### Changed 
 - the `DynamoDB::CreateTable` permission is not required anymore if the table already exist, 
@@ -31,7 +36,8 @@ instead at least `DynamoDB::DescribeTable` is necessary [@derXear](https://githu
 ### Added 
 - initial code base by [@derXear](https://github.com/derXear)
 
-[Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.5...HEAD
+[Unreleased]: https://github.com/bad-opensource/spring-cache-dynamodb/compare/v0.9.6...HEAD
+[0.9.6]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.5...v0.9.6
 [0.9.5]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/bad-opensource/spring-cache-dynamodb/releases/tag/v0.9.2...v0.9.3
