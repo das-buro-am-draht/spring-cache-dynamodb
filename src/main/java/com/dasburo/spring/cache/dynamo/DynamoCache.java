@@ -18,6 +18,7 @@ package com.dasburo.spring.cache.dynamo;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttribute;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeReader;
+import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -166,6 +167,24 @@ public class DynamoCache implements Cache {
     return cacheConfig.getRootAttributes();
   }
 
+  /**
+   * Returns the implementation of {@link DynamoCacheWriter} used for caching
+   *
+   * @return the DynamoCacheWriter implementation.
+   */
+  public final DynamoCacheWriter getWriter() {
+    return writer;
+  }
+
+  /**
+   * Returns the implementation of {@link DynamoSerializer} used to serialize the value to be cached
+   *
+   * @return the DynamoSerializer implementation.
+   */
+  public final DynamoSerializer getSerializer() {
+    return cacheConfig.getSerializer();
+  }
+
   @Override
   public void put(Object key, Object value) {
     Assert.isTrue(key instanceof String, "'key' must be an instance of 'java.lang.String'.");
@@ -210,8 +229,8 @@ public class DynamoCache implements Cache {
 
   private List<RootAttribute> readRootAttributes(List<RootAttributeConfig> rootAttributeConfigs, Object value) {
     return rootAttributeConfigs.stream()
-        .map(rootAttributeConfig -> rootAttributeReader.readRootAttribute(rootAttributeConfig, value))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+      .map(rootAttributeConfig -> rootAttributeReader.readRootAttribute(rootAttributeConfig, value))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
   }
 }

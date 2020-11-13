@@ -19,7 +19,9 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.dasburo.spring.cache.dynamo.helper.Address;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
+import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
 import com.dasburo.spring.cache.dynamo.serializer.Jackson2JsonSerializer;
+import com.dasburo.spring.cache.dynamo.serializer.StringSerializer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -63,13 +65,17 @@ public class DynamoCacheTest {
 
   private DynamoCache cache;
 
+  private DynamoSerializer serializer;
+
   @Before
   public void setup() {
     writer = spy(writer);
+    serializer = new StringSerializer();
 
     DynamoCacheConfiguration config = DynamoCacheConfiguration.defaultCacheConfig();
     config.setTtl(TTL);
     config.setFlushOnBoot(true);
+    config.setSerializer(serializer);
 
     cache = new DynamoCache(CACHE_NAME, writer, config);
     reset(writer);
@@ -124,6 +130,24 @@ public class DynamoCacheTest {
   public void getTtl() {
     final Duration ttl = cache.getTtl();
     Assert.assertEquals(TTL, ttl);
+  }
+
+  /**
+   * Test for {@link DynamoCache#getWriter()}.
+   */
+  @Test
+  public void getCacheWriter() {
+    final Object cacheWriter = cache.getWriter();
+    Assert.assertEquals(writer, cacheWriter);
+  }
+
+  /**
+   * Test for {@link DynamoCache#getSerializer()}.
+   */
+  @Test
+  public void getSerializer() {
+    final DynamoSerializer serializer = cache.getSerializer();
+    Assert.assertEquals(this.serializer, serializer);
   }
 
   /**
