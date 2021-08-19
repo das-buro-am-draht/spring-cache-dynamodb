@@ -1,8 +1,8 @@
 # spring-cache-dynamodb
 
 [![Apache 2.0 License][license-image]][license-url]
-[![Build Status][travis-image]][travis-url]
-[![Coverage Status][coveralls-image]][coveralls-url]
+[![Build Status](https://www.travis-ci.com/das-buro-am-draht/spring-cache-dynamodb.svg?branch=master)](https://www.travis-ci.com/das-buro-am-draht/spring-cache-dynamodb)
+[![Coverage Status](https://coveralls.io/repos/github/das-buro-am-draht/spring-cache-dynamodb/badge.svg)](https://coveralls.io/github/das-buro-am-draht/spring-cache-dynamodb)
 
 > Spring Cache implementation based on Amazon DynamoDB
 
