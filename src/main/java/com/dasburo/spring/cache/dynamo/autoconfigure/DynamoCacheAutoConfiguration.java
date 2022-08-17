@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  */
 package com.dasburo.spring.cache.dynamo.autoconfigure;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.dasburo.spring.cache.dynamo.DynamoCacheBuilder;
 import com.dasburo.spring.cache.dynamo.DynamoCacheManager;
 import com.dasburo.spring.cache.dynamo.DynamoCacheWriter;
@@ -27,6 +26,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,20 +34,20 @@ import java.util.List;
 /**
  * {@link org.springframework.boot.autoconfigure.EnableAutoConfiguration Auto configuration} for {@code DynamoCacheManager} support.
  *
- * @author BaD Georg Zimmermann
+ * @author Georg Zimmermann
  */
 @Configuration
-@ConditionalOnClass(AmazonDynamoDB.class)
+@ConditionalOnClass(DynamoDbClient.class)
 @ConditionalOnMissingBean(CacheManager.class)
 @EnableConfigurationProperties(DynamoCachePropertiesList.class)
 public class DynamoCacheAutoConfiguration {
 
-  private final AmazonDynamoDB dynamoTemplate;
+  private final DynamoDbClient dynamoTemplate;
 
   private final DynamoCachePropertiesList properties;
 
   @Autowired
-  public DynamoCacheAutoConfiguration(AmazonDynamoDB dynamoTemplate, DynamoCachePropertiesList properties) {
+  public DynamoCacheAutoConfiguration(DynamoDbClient dynamoTemplate, DynamoCachePropertiesList properties) {
     this.dynamoTemplate = dynamoTemplate;
     this.properties = properties;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.time.Duration;
 import java.util.List;
@@ -39,9 +39,9 @@ public class DynamoCacheBuilder {
    * Constructor.
    *
    * @param cacheName      a name of the cache.
-   * @param dynamoTemplate a {@link AmazonDynamoDB} instance.
+   * @param dynamoTemplate a {@link DynamoDbClient} instance.
    */
-  protected DynamoCacheBuilder(final String cacheName, final AmazonDynamoDB dynamoTemplate) {
+  protected DynamoCacheBuilder(final String cacheName, final DynamoDbClient dynamoTemplate) {
     Assert.notNull(dynamoTemplate, "'dynamoTemplate' must not be null.");
     Assert.hasText(cacheName, "'cacheName' must not be null and must contain at least one non-whitespace character.");
 
@@ -54,10 +54,10 @@ public class DynamoCacheBuilder {
    * Create a new builder instance with the given cache name.
    *
    * @param cacheName      a name of the cache.
-   * @param dynamoTemplate a {@link AmazonDynamoDB} instance.
+   * @param dynamoTemplate a {@link DynamoDbClient} instance.
    * @return a new builder
    */
-  public static DynamoCacheBuilder newInstance(String cacheName, AmazonDynamoDB dynamoTemplate) {
+  public static DynamoCacheBuilder newInstance(String cacheName, DynamoDbClient dynamoTemplate) {
     return new DynamoCacheBuilder(cacheName, dynamoTemplate);
   }
 

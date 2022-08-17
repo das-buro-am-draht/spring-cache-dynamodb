@@ -1,6 +1,6 @@
 package com.dasburo.spring.cache.dynamo.rootattribute;
 
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.nio.ByteBuffer;
 

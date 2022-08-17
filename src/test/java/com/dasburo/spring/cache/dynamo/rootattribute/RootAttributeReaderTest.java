@@ -1,8 +1,9 @@
 package com.dasburo.spring.cache.dynamo.rootattribute;
 
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.LinkedHashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 public class RootAttributeReaderTest {
 
@@ -23,7 +25,7 @@ public class RootAttributeReaderTest {
   @Test
   public void testRootAttributeReader_StringFieldCanBeHandled() {
     //given
-    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", ScalarAttributeType.S);
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", S);
     SampleTestClass sampleInstance = new SampleTestClass();
     sampleInstance.setStringField("dummy-value");
 
@@ -32,13 +34,13 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("stringField", rootAttribute.getName());
-    assertEquals("dummy-value", rootAttribute.getAttributeValue().getS());
+    assertEquals("dummy-value", rootAttribute.getAttributeValue().s());
   }
 
   @Test
   public void testRootAttributeReader_BooleanFieldCanBeHandledAsString() {
     //given
-    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("booleanField", ScalarAttributeType.S);
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("booleanField", S);
     SampleTestClass sampleInstance = new SampleTestClass();
     sampleInstance.setBooleanField(true);
 
@@ -47,7 +49,7 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("booleanField", rootAttribute.getName());
-    assertEquals("true", rootAttribute.getAttributeValue().getS());
+    assertEquals("true", rootAttribute.getAttributeValue().s());
   }
 
   @Test
@@ -55,14 +57,14 @@ public class RootAttributeReaderTest {
     //given
     RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("enumField", ScalarAttributeType.N);
     SampleTestClass sampleInstance = new SampleTestClass();
-    sampleInstance.setEnumField(ScalarAttributeType.S);
+    sampleInstance.setEnumField(S);
 
     //when
     RootAttribute rootAttribute = rootAttributeReader.readRootAttribute(rootAttributeConfig, sampleInstance);
 
     //then
     assertEquals("enumField", rootAttribute.getName());
-    assertEquals("S", rootAttribute.getAttributeValue().getN());
+    assertEquals("S", rootAttribute.getAttributeValue().n());
   }
 
   @Test
@@ -77,7 +79,7 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("integerField", rootAttribute.getName());
-    assertEquals("123", rootAttribute.getAttributeValue().getN());
+    assertEquals("123", rootAttribute.getAttributeValue().n());
   }
 
   @Test
@@ -92,7 +94,7 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("doubleField", rootAttribute.getName());
-    assertEquals("123.0", rootAttribute.getAttributeValue().getN());
+    assertEquals("123.0", rootAttribute.getAttributeValue().n());
   }
 
   @Test
@@ -107,13 +109,13 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("byteBufferField", rootAttribute.getName());
-    assertEquals(ByteBuffer.wrap("dummy-text".getBytes()), rootAttribute.getAttributeValue().getB());
+    assertEquals(SdkBytes.fromByteArray("dummy-text".getBytes()), rootAttribute.getAttributeValue().b());
   }
 
   @Test
   public void testRootAttributeReader_HashMapCanBeHandled() {
     //given
-    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", ScalarAttributeType.S);
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", S);
     HashMap<String, String> map = new HashMap<>();
     map.put("stringField", "dummy-text");
 
@@ -122,13 +124,13 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("stringField", rootAttribute.getName());
-    assertEquals("dummy-text", rootAttribute.getAttributeValue().getS());
+    assertEquals("dummy-text", rootAttribute.getAttributeValue().s());
   }
 
   @Test
   public void testRootAttributeReader_LinkedHashMapCanBeHandled() {
     //given
-    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", ScalarAttributeType.S);
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", S);
     LinkedHashMap<String, String> map = new LinkedHashMap<>();
     map.put("stringField", "dummy-text");
 
@@ -137,13 +139,13 @@ public class RootAttributeReaderTest {
 
     //then
     assertEquals("stringField", rootAttribute.getName());
-    assertEquals("dummy-text", rootAttribute.getAttributeValue().getS());
+    assertEquals("dummy-text", rootAttribute.getAttributeValue().s());
   }
 
   @Test
   public void testRootAttributeReader_UnknownFieldIsGetsIgnored() {
     //given
-    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("unknownField", ScalarAttributeType.S);
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("unknownField", S);
     SampleTestClass sampleInstance = new SampleTestClass();
 
     //when
@@ -156,7 +158,7 @@ public class RootAttributeReaderTest {
   @Test
   public void testRootAttributeReader_NullValueOfKnownFieldsGetsIgnored() {
     //given
-    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", ScalarAttributeType.S);
+    RootAttributeConfig rootAttributeConfig = new RootAttributeConfig("stringField", S);
     SampleTestClass sampleInstance = new SampleTestClass();
     sampleInstance.setStringField(null);
 

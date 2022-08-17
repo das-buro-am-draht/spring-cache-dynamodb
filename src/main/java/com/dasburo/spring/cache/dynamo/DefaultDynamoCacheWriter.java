@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,48 +15,48 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.TimeToLiveSpecification;
-import com.amazonaws.services.dynamodbv2.model.UpdateTimeToLiveRequest;
-import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttribute;
-import com.dasburo.spring.cache.dynamo.util.ByteUtils;
+import com.dasburo.spring.cache.dynamo.util.TableUtils;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.TimeToLiveSpecification;
+import software.amazon.awssdk.services.dynamodb.model.UpdateTimeToLiveRequest;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Function;
+
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 /**
  * {@link DynamoCacheWriter} implementation capable of reading/writing binary data from/to DynamoDB in {@literal standalone}
- * and {@literal cluster} environments. Works upon a given {@link AmazonDynamoDB} holds the actual connection.
+ * and {@literal cluster} environments. Works upon a given {@link DynamoDbClient} holds the actual connection.
  * <p>
  * {@link DefaultDynamoCacheWriter} can be used in
- * {@link DynamoCacheWriter#lockingDynamoCacheWriter(AmazonDynamoDB) locking} or
- * {@link DynamoCacheWriter#nonLockingDynamoCacheWriter(AmazonDynamoDB) non-locking} mode. While
- * {@literal non-locking} aims for maximum performance it may result in overlapping, non atomic, command execution for
+ * {@link DynamoCacheWriter#lockingDynamoCacheWriter(DynamoDbClient) locking} or
+ * {@link DynamoCacheWriter#nonLockingDynamoCacheWriter(DynamoDbClient) non-locking} mode. While
+ * {@literal non-locking} aims for maximum performance it may result in overlapping, non-atomic, command execution for
  * operations spanning multiple DynamoDB interactions like {@code putIfAbsent}. The {@literal locking} counterpart prevents
  * command overlap by setting an explicit lock key and checking against presence of this key which leads to additional
  * requests and potential command wait times.
@@ -69,13 +69,13 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
   public static final String ATTRIBUTE_VALUE = "value";
   public static final String ATTRIBUTE_TTL = "ttl";
 
-  private final AmazonDynamoDB dynamoTemplate;
+  private final DynamoDbClient dynamoTemplate;
   private final Duration sleepTime;
 
   /**
    * @param dynamoTemplate must not be {@literal null}.
    */
-  DefaultDynamoCacheWriter(AmazonDynamoDB dynamoTemplate) {
+  DefaultDynamoCacheWriter(DynamoDbClient dynamoTemplate) {
     this(dynamoTemplate, Duration.ZERO);
   }
 
@@ -84,7 +84,7 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
    * @param sleepTime      sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
    *                       to disable locking.
    */
-  DefaultDynamoCacheWriter(AmazonDynamoDB dynamoTemplate, Duration sleepTime) {
+  DefaultDynamoCacheWriter(DynamoDbClient dynamoTemplate, Duration sleepTime) {
     Assert.notNull(dynamoTemplate, "ConnectionFactory must not be null!");
     Assert.notNull(sleepTime, "SleepTime must not be null!");
 
@@ -93,7 +93,7 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
   }
 
   @Override
-  public AmazonDynamoDB getNativeCacheWriter() {
+  public DynamoDbClient getNativeCacheWriter() {
     return dynamoTemplate;
   }
 
@@ -157,23 +157,24 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     Assert.notNull(name, "Name must not be null!");
 
     execute(name, connection -> {
-
       try {
         if (isLockingCacheWriter()) {
           doLock(name);
         }
 
-        ScanRequest req = new ScanRequest(name);
-        List<Map<String, AttributeValue>> items = dynamoTemplate.scan(req).getItems();
+        List<Map<String, AttributeValue>> items = dynamoTemplate.scan(req -> req.tableName(name)).items();
 
         items.parallelStream()
           .forEach(map -> {
             Map<String, AttributeValue> keyToDelete = new HashMap<>();
             keyToDelete.put(ATTRIBUTE_KEY, map.get(ATTRIBUTE_KEY));
-            DeleteItemRequest delReq = new DeleteItemRequest(name, keyToDelete);
+            DeleteItemRequest delReq = DeleteItemRequest.builder()
+              .tableName(name)
+              .key(keyToDelete)
+              .build();
             dynamoTemplate.deleteItem(delReq);
           });
-      } catch(ResourceNotFoundException ignored) {
+      } catch (ResourceNotFoundException ignored) {
         // ignore table not found
       } finally {
         if (isLockingCacheWriter()) {
@@ -191,8 +192,10 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
 
     boolean created = false;
     try {
-      dynamoTemplate.describeTable(name);
-    } catch(ResourceNotFoundException e) {
+      dynamoTemplate.describeTable(DescribeTableRequest.builder()
+        .tableName(name)
+        .build());
+    } catch (ResourceNotFoundException e) {
       created = TableUtils.createTableIfNotExists(dynamoTemplate, createTableRequest(name, readCapacityUnits, writeCapacityUnits));
       if (created && !ttl.isZero()) {
         dynamoTemplate.updateTimeToLive(updateTimeToLiveRequest(name));
@@ -202,62 +205,65 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
   }
 
   private byte[] getInternal(String name, String key) {
-    final GetItemRequest request = new GetItemRequest()
-      .withAttributesToGet(ATTRIBUTE_VALUE)
-      .withTableName(name)
-      .withKey(Collections.singletonMap(ATTRIBUTE_KEY, new AttributeValue(key)));
+    final GetItemRequest request = GetItemRequest.builder()
+      .attributesToGet(ATTRIBUTE_VALUE)
+      .tableName(name)
+      .key(Collections.singletonMap(ATTRIBUTE_KEY, AttributeValue.fromS(key)))
+      .build();
 
-    final GetItemResult result = dynamoTemplate.getItem(request);
-    if (result.getItem() != null) {
+    final GetItemResponse result = dynamoTemplate.getItem(request);
+    if (result.hasItem()) {
       return getAttributeValue(result);
     } else {
       throw new NoSuchElementException(String.format("No entry found for '%s'.", key));
     }
   }
 
-  private byte[] getAttributeValue(GetItemResult result) {
-    final AttributeValue attribute = result.getItem().get(ATTRIBUTE_VALUE);
+  private byte[] getAttributeValue(GetItemResponse result) {
+    final AttributeValue attribute = result.item().get(ATTRIBUTE_VALUE);
     if (attribute == null) {
       throw new IllegalStateException(String.format("Attribute value does not match the expected '%s'.", ATTRIBUTE_VALUE));
     }
 
-    ByteBuffer element = attribute.getB();
-    if (element == null && attribute.getNULL()) {
+    SdkBytes element = attribute.b();
+    if (element == null && attribute.nul()) {
       // TODO to return null is bad style, but how to distinct between null value from getInternal and no entry at all?
       return null;
     } else {
-      return ByteUtils.getBytes(element);
+      return Objects.requireNonNull(element).asByteArray();
     }
   }
 
   private void putInternal(String name, String key, @Nullable byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes) {
     Map<String, AttributeValue> attributeValues = new HashMap<>();
-    attributeValues.put(ATTRIBUTE_KEY, new AttributeValue().withS(key));
+    attributeValues.put(ATTRIBUTE_KEY, AttributeValue.fromS(key));
 
     if (value == null) {
-      attributeValues.put(ATTRIBUTE_VALUE, new AttributeValue().withNULL(true));
+      attributeValues.put(ATTRIBUTE_VALUE, AttributeValue.fromNul(true));
     } else {
-      attributeValues.put(ATTRIBUTE_VALUE, new AttributeValue().withB(ByteBuffer.wrap(value)));
+      attributeValues.put(ATTRIBUTE_VALUE, AttributeValue.fromB(SdkBytes.fromByteArray(value)));
     }
 
     if (shouldExpireWithin(ttl)) {
-      attributeValues.put(ATTRIBUTE_TTL, new AttributeValue().withN(String.valueOf(Instant.now().plus(ttl).getEpochSecond())));
+      attributeValues.put(ATTRIBUTE_TTL, AttributeValue.fromN(String.valueOf(Instant.now().plus(ttl).getEpochSecond())));
     }
 
     if (rootAttributes != null) {
       rootAttributes.forEach(rootAttribute -> attributeValues.put(rootAttribute.getName(), rootAttribute.getAttributeValue()));
     }
 
-    PutItemRequest putItemRequest = new PutItemRequest()
-      .withTableName(name)
-      .withItem(attributeValues);
+    PutItemRequest putItemRequest = PutItemRequest.builder()
+      .tableName(name)
+      .item(attributeValues)
+      .build();
     dynamoTemplate.putItem(putItemRequest);
   }
 
   private void removeInternal(String name, String key) {
-    dynamoTemplate.deleteItem(new DeleteItemRequest()
-      .withTableName(name)
-      .withKey(Collections.singletonMap(ATTRIBUTE_KEY, new AttributeValue(key))));
+    dynamoTemplate.deleteItem(DeleteItemRequest.builder()
+      .tableName(name)
+      .key(Collections.singletonMap(ATTRIBUTE_KEY, AttributeValue.fromS(key)))
+      .build());
   }
 
   private void doLock(String name) {
@@ -289,7 +295,7 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     return !sleepTime.isZero() && !sleepTime.isNegative();
   }
 
-  private <T> T execute(String name, Function<AmazonDynamoDB, T> callback) {
+  private <T> T execute(String name, Function<DynamoDbClient, T> callback) {
     checkAndPotentiallyWaitUntilUnlocked(name);
     return callback.apply(dynamoTemplate);
   }
@@ -321,25 +327,31 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
   }
 
   private CreateTableRequest createTableRequest(String name, Long readCapacityUnits, Long writeCapacityUnits) {
-    List<AttributeDefinition> attributeDefinitions = new ArrayList<>();
-    attributeDefinitions.add(new AttributeDefinition().withAttributeName(ATTRIBUTE_KEY).withAttributeType(ScalarAttributeType.S));
-
-    List<KeySchemaElement> keySchema = new ArrayList<>();
-    keySchema.add(new KeySchemaElement().withAttributeName(ATTRIBUTE_KEY).withKeyType(KeyType.HASH));
-
-    return new CreateTableRequest()
-      .withTableName(name)
-      .withKeySchema(keySchema)
-      .withAttributeDefinitions(attributeDefinitions)
-      .withProvisionedThroughput(new ProvisionedThroughput(readCapacityUnits, writeCapacityUnits));
+    return CreateTableRequest.builder()
+      .tableName(name)
+      .attributeDefinitions(AttributeDefinition.builder()
+        .attributeName(ATTRIBUTE_KEY)
+        .attributeType(S)
+        .build())
+      .keySchema(KeySchemaElement.builder()
+        .attributeName(ATTRIBUTE_KEY)
+        .keyType(KeyType.HASH)
+        .build())
+      .provisionedThroughput(ProvisionedThroughput.builder()
+        .readCapacityUnits(readCapacityUnits)
+        .writeCapacityUnits(writeCapacityUnits)
+        .build())
+      .build();
   }
 
   // TODO to be tested (not implemented in AmazonDynamoDB local)
   private UpdateTimeToLiveRequest updateTimeToLiveRequest(String name) {
-    return new UpdateTimeToLiveRequest()
-      .withTableName(name)
-      .withTimeToLiveSpecification(new TimeToLiveSpecification()
-        .withEnabled(true)
-        .withAttributeName(ATTRIBUTE_TTL));
+    return UpdateTimeToLiveRequest.builder()
+      .tableName(name)
+      .timeToLiveSpecification(TimeToLiveSpecification.builder()
+        .enabled(true)
+        .attributeName(ATTRIBUTE_TTL)
+        .build())
+      .build();
   }
 }

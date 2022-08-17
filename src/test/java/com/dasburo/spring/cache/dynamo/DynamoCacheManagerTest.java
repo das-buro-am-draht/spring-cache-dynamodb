@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -24,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Unit tests for {@link DynamoCacheManager}.
  *
- * @author BaD Georg Zimmermann
+ * @author Georg Zimmermann
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
@@ -48,7 +48,7 @@ public class DynamoCacheManagerTest {
   public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
 
   @Autowired
-  private AmazonDynamoDB dynamoTemplate;
+  private DynamoDbClient dynamoTemplate;
 
   private DynamoCacheManager manager;
 

@@ -1,12 +1,28 @@
+/*
+ * Copyright 2019-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dasburo.spring.cache.dynamo.rootattribute;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -24,8 +40,7 @@ public class RootAttributeReader {
       }
       AttributeValue attributeValue = mapValueToAttributeValue(value, rootAttributeConfig.getType());
       return new RootAttribute(rootAttributeConfig.getName(), attributeValue);
-    }
-    catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
       LOGGER.trace("Unable to access attribute {} on instance of class {}", rootAttributeConfig.getName(), object.getClass());
       return null;
     }
@@ -35,12 +50,12 @@ public class RootAttributeReader {
   private AttributeValue mapValueToAttributeValue(@NonNull Object value, @NonNull ScalarAttributeType type) {
     switch (type) {
       case N:
-        return new AttributeValue().withN(String.valueOf(value));
+        return AttributeValue.fromN(String.valueOf(value));
       case B:
-        return new AttributeValue().withB((ByteBuffer) value);
+        return AttributeValue.fromB(SdkBytes.fromByteBuffer((ByteBuffer) value));
       case S:
       default:
-        return new AttributeValue().withS(String.valueOf(value));
+        return AttributeValue.fromS(String.valueOf(value));
     }
   }
 }

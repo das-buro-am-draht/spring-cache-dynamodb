@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttribute;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.time.Duration;
 import java.util.List;
@@ -38,7 +38,7 @@ public interface DynamoCacheWriter {
    *
    * @return new instance of {@link DefaultDynamoCacheWriter}.
    */
-  static DynamoCacheWriter nonLockingDynamoCacheWriter(AmazonDynamoDB dynamoTemplate) {
+  static DynamoCacheWriter nonLockingDynamoCacheWriter(DynamoDbClient dynamoTemplate) {
 
     Assert.notNull(dynamoTemplate, "AmazonDynamoDB must not be null!");
 
@@ -51,7 +51,7 @@ public interface DynamoCacheWriter {
    * @param dynamoTemplate must not be {@literal null}.
    * @return new instance of {@link DefaultDynamoCacheWriter}.
    */
-  static DynamoCacheWriter lockingDynamoCacheWriter(AmazonDynamoDB dynamoTemplate) {
+  static DynamoCacheWriter lockingDynamoCacheWriter(DynamoDbClient dynamoTemplate) {
 
     Assert.notNull(dynamoTemplate, "AmazonDynamoDB must not be null!");
 
@@ -61,9 +61,9 @@ public interface DynamoCacheWriter {
   /**
    * Returns the native connection library for the cache.
    *
-   * @return {@link AmazonDynamoDB}
+   * @return {@link DynamoDbClient}
    */
-  AmazonDynamoDB getNativeCacheWriter();
+  DynamoDbClient getNativeCacheWriter();
 
   /**
    * Create a cache table for the given name.
@@ -77,7 +77,7 @@ public interface DynamoCacheWriter {
   boolean createIfNotExists(String name, Duration ttl, Long readCapacityUnits, Long writeCapacityUnits);
 
   /**
-   * Write the given key/value pair to Dynamo an set the expiration time if defined.
+   * Write the given key/value pair to Dynamo and set the expiration time if defined.
    * <br><b>Note:</b> The values size must be less than 400 KB.
    * As this is the maximum element size of a binary in Amazons DynamoDB.
    *
@@ -124,7 +124,7 @@ public interface DynamoCacheWriter {
 
   /**
    * Remove all keys from the given cache name.
-   * <br><b>Note:</b> Clear is actually a table scann followed by per Item deletion.
+   * <br><b>Note:</b> Clear is actually a table scan followed by per Item deletion.
    * This could lead to performance issues on very large data sets.
    *
    * @param name The cache name must not be {@literal null}.
