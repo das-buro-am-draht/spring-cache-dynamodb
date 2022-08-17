@@ -16,25 +16,27 @@ package com.dasburo.spring.cache.dynamo;
 
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class TestDbCreationRule extends ExternalResource {
+public class TestDbCreationExtension implements AfterAllCallback, BeforeAllCallback {
   private DynamoDBProxyServer server;
 
-  public TestDbCreationRule() {
+  public TestDbCreationExtension() {
     System.setProperty("sqlite4java.library.path", "native-libs");
   }
 
   @Override
-  protected void before() throws Exception {
-    server = ServerRunner.createServerFromCommandLineArgs(
-      new String[]{"-inMemory", "-port", "8090"});
-    server.start();
+  public void afterAll(ExtensionContext extensionContext) throws Exception {
+    this.stopUnchecked(server);
   }
 
   @Override
-  protected void after() {
-    this.stopUnchecked(server);
+  public void beforeAll(ExtensionContext extensionContext) throws Exception {
+    server = ServerRunner.createServerFromCommandLineArgs(
+      new String[]{"-inMemory", "-port", "8090"});
+    server.start();
   }
 
   private void stopUnchecked(DynamoDBProxyServer dynamoDbServer) {
@@ -44,5 +46,4 @@ public class TestDbCreationRule extends ExternalResource {
       throw new RuntimeException(e);
     }
   }
-
 }

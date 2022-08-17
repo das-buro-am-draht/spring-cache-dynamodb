@@ -14,15 +14,13 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.ArrayList;
@@ -32,27 +30,25 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for {@link DynamoCacheManager}.
  *
  * @author Georg Zimmermann
  */
-@RunWith(SpringRunner.class)
+@ExtendWith({SpringExtension.class, TestDbCreationExtension.class})
 @ContextConfiguration(classes = TestConfiguration.class)
 public class DynamoCacheManagerTest {
 
   private static final String CACHE_NAME = "cache";
-
-  @ClassRule
-  public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
 
   @Autowired
   private DynamoDbClient dynamoTemplate;
 
   private DynamoCacheManager manager;
 
-  @Before
+  @BeforeEach
   public void setup() {
     DynamoCacheBuilder defaultCacheBuilder = DynamoCacheBuilder.newInstance(CACHE_NAME, dynamoTemplate);
     this.manager = new DynamoCacheManager(Collections.singletonList(defaultCacheBuilder));
@@ -70,8 +66,8 @@ public class DynamoCacheManagerTest {
 
     final DynamoCacheManager manager = new DynamoCacheManager(initialCaches);
     final Collection<? extends Cache> caches = manager.loadCaches();
-    Assert.assertNotNull(caches);
-    Assert.assertEquals(1, caches.size());
+    assertNotNull(caches);
+    assertEquals(1, caches.size());
   }
 
   /**
@@ -80,12 +76,12 @@ public class DynamoCacheManagerTest {
   @Test
   public void cache() {
     final Cache cache = manager.getCache(CACHE_NAME);
-    Assert.assertNotNull(cache);
-    Assert.assertEquals(CACHE_NAME, cache.getName());
+    assertNotNull(cache);
+    assertEquals(CACHE_NAME, cache.getName());
     assertThat(cache, instanceOf(DynamoCache.class));
 
     final DynamoCache dynamoCache = (DynamoCache) cache;
-    Assert.assertEquals(dynamoCache.getNativeCache(), dynamoTemplate);
+    assertEquals(dynamoCache.getNativeCache(), dynamoTemplate);
   }
 
   /**
@@ -94,10 +90,10 @@ public class DynamoCacheManagerTest {
   @Test
   public void getCache() {
     final Cache cache = manager.getCache(CACHE_NAME);
-    Assert.assertNotNull(cache);
+    assertNotNull(cache);
 
     final Cache invalidCache = manager.getCache("invalid");
-    Assert.assertNull(invalidCache);
+    assertNull(invalidCache);
   }
 
   /**
@@ -105,8 +101,8 @@ public class DynamoCacheManagerTest {
    */
   @Test
   public void getCacheNames() {
-    Assert.assertNotNull(manager.getCacheNames());
-    Assert.assertEquals(1, manager.getCacheNames().size());
+    assertNotNull(manager.getCacheNames());
+    assertEquals(1, manager.getCacheNames().size());
     assertThat(manager.getCacheNames(), hasItem(CACHE_NAME));
   }
 

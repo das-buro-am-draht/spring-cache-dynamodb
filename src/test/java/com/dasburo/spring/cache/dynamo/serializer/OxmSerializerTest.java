@@ -15,17 +15,16 @@
 package com.dasburo.spring.cache.dynamo.serializer;
 
 import com.dasburo.spring.cache.dynamo.helper.Address;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class OxmSerializerTest {
 
   @Mock
@@ -36,7 +35,7 @@ public class OxmSerializerTest {
 
   OxmSerializer sut;
 
-  @Before
+  @BeforeEach
   public void setup() {
     Jaxb2Marshaller m = new Jaxb2Marshaller();
     sut = new OxmSerializer(m, m);
@@ -44,17 +43,19 @@ public class OxmSerializerTest {
 
   @Test
   public void testOxmSerializer_WithNullValueShouldReturnNullObject() {
-    Assert.assertEquals(null, sut.serialize(null));
+    assertNull(sut.serialize(null));
   }
 
-  @Test(expected = SerializationException.class)
+  @Test
   public void testOxmSerializer_WithWrongValueShouldThrowException() {
-    Address test = new Address();
-    sut.serialize(test);
+    assertThrows(SerializationException.class, () -> {
+      Address test = new Address();
+      sut.serialize(test);
+    });
   }
 
   @Test
   public void testOxmSerializer_WithNullValueShouldReturnNullObjectWhenDeserializing() {
-    Assert.assertEquals(null, sut.deserialize(null));
+    assertNull(sut.deserialize(null));
   }
 }
