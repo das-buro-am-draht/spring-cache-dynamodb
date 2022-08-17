@@ -17,21 +17,20 @@ package com.dasburo.spring.cache.dynamo.autoconfigure;
 import com.dasburo.spring.cache.dynamo.DynamoCache;
 import com.dasburo.spring.cache.dynamo.DynamoCacheManager;
 import com.dasburo.spring.cache.dynamo.TestConfiguration;
-import com.dasburo.spring.cache.dynamo.TestDbCreationRule;
+import com.dasburo.spring.cache.dynamo.TestDbCreationExtension;
 import com.dasburo.spring.cache.dynamo.UnitTestBase;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 /**
@@ -39,7 +38,7 @@ import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
  *
  * @author Georg Zimmermann
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(TestDbCreationExtension.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
 
@@ -50,13 +49,10 @@ public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
   private static final Long WRITE_CAPACITY_UNITS = 1L;
   private static final List<RootAttributeConfig> ROOT_ATTRIBUTES = Collections.singletonList(new RootAttributeConfig("street", S));
 
-  @ClassRule
-  public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
-
   /**
    * Executes before the execution of tests.
    */
-  @Before
+  @BeforeEach
   public void load() {
     context = load(
       new Class<?>[]{DynamoCacheAutoConfiguration.class},
@@ -79,7 +75,7 @@ public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
     assertBeanExists(DynamoCache.class);
 
     final DynamoCacheManager manager = context.getBean(DynamoCacheManager.class);
-    Assert.assertNotNull(manager);
+    assertNotNull(manager);
   }
 
   /**
@@ -91,15 +87,15 @@ public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
     assertBeanExists(DynamoCacheManager.class);
 
     final DynamoCacheManager manager = context.getBean(DynamoCacheManager.class);
-    Assert.assertNotNull(manager);
+    assertNotNull(manager);
 
     final DynamoCache cache = (DynamoCache) manager.getCache(CACHE_NAME);
-    Assert.assertNotNull(cache);
-    Assert.assertEquals(TTL, cache.getTtl());
-    Assert.assertEquals(CACHE_NAME, cache.getName());
-    Assert.assertEquals(FLUSH_ON_BOOT, cache.isFlushOnBoot());
-    Assert.assertEquals(ROOT_ATTRIBUTES.get(0).getName(), cache.getRootAttributes().get(0).getName());
-    Assert.assertEquals(ROOT_ATTRIBUTES.get(0).getType(), cache.getRootAttributes().get(0).getType());
+    assertNotNull(cache);
+    assertEquals(TTL, cache.getTtl());
+    assertEquals(CACHE_NAME, cache.getName());
+    assertEquals(FLUSH_ON_BOOT, cache.isFlushOnBoot());
+    assertEquals(ROOT_ATTRIBUTES.get(0).getName(), cache.getRootAttributes().get(0).getName());
+    assertEquals(ROOT_ATTRIBUTES.get(0).getType(), cache.getRootAttributes().get(0).getType());
   }
 
 }

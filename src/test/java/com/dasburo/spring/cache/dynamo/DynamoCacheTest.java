@@ -19,29 +19,24 @@ import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
 import com.dasburo.spring.cache.dynamo.serializer.Jackson2JsonSerializer;
 import com.dasburo.spring.cache.dynamo.serializer.StringSerializer;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.time.Duration;
 import java.util.HashMap;
 
 import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 /**
@@ -49,15 +44,12 @@ import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
  *
  * @author Georg Zimmermann
  */
-@RunWith(SpringRunner.class)
+@ExtendWith({SpringExtension.class, TestDbCreationExtension.class})
 @ContextConfiguration(classes = TestConfiguration.class)
 public class DynamoCacheTest {
 
   private static final String CACHE_NAME = "cache";
   private static final Duration TTL = Duration.ofSeconds(10);
-
-  @ClassRule
-  public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
 
   @Autowired
   private DynamoCacheWriter writer;
@@ -69,7 +61,7 @@ public class DynamoCacheTest {
 
   private DynamoSerializer serializer;
 
-  @Before
+  @BeforeEach
   public void setup() {
     writer = spy(writer);
     serializer = new StringSerializer();
@@ -89,13 +81,13 @@ public class DynamoCacheTest {
   @Test
   public void constructor() {
     final String cacheName = cache.getName();
-    Assert.assertEquals(CACHE_NAME, cacheName);
+    assertEquals(CACHE_NAME, cacheName);
 
     final Object nativeCache = cache.getNativeCache();
-    Assert.assertEquals(nativeCache, writer.getNativeCacheWriter());
+    assertEquals(nativeCache, writer.getNativeCacheWriter());
 
     final DynamoCache dynamoCache = new DynamoCache(CACHE_NAME, writer);
-    Assert.assertNotEquals(0, dynamoCache.getTtl());
+    assertNotEquals(0, dynamoCache.getTtl());
   }
 
   /**
@@ -113,7 +105,7 @@ public class DynamoCacheTest {
   @Test
   public void getName() {
     final String name = cache.getName();
-    Assert.assertEquals(CACHE_NAME, name);
+    assertEquals(CACHE_NAME, name);
   }
 
   /**
@@ -122,7 +114,7 @@ public class DynamoCacheTest {
   @Test
   public void getNativeCache() {
     final Object nativeCache = cache.getNativeCache();
-    Assert.assertEquals(nativeCache, writer.getNativeCacheWriter());
+    assertEquals(nativeCache, writer.getNativeCacheWriter());
   }
 
   /**
@@ -131,7 +123,7 @@ public class DynamoCacheTest {
   @Test
   public void getTtl() {
     final Duration ttl = cache.getTtl();
-    Assert.assertEquals(TTL, ttl);
+    assertEquals(TTL, ttl);
   }
 
   /**
@@ -140,7 +132,7 @@ public class DynamoCacheTest {
   @Test
   public void getCacheWriter() {
     final Object cacheWriter = cache.getWriter();
-    Assert.assertEquals(writer, cacheWriter);
+    assertEquals(writer, cacheWriter);
   }
 
   /**
@@ -149,7 +141,7 @@ public class DynamoCacheTest {
   @Test
   public void getSerializer() {
     final DynamoSerializer serializer = cache.getSerializer();
-    Assert.assertEquals(this.serializer, serializer);
+    assertEquals(this.serializer, serializer);
   }
 
   /**
@@ -163,8 +155,8 @@ public class DynamoCacheTest {
     cache.put(key, value);
     Cache.ValueWrapper wrapper = cache.get(key);
 
-    Assert.assertNotNull(wrapper);
-    Assert.assertNotNull(value, wrapper.get());
+    assertNotNull(wrapper);
+    assertNotNull(wrapper.get(), value);
   }
 
   /**
@@ -178,20 +170,23 @@ public class DynamoCacheTest {
     cache.put(key, value);
 
     final Cache.ValueWrapper wrapper = cache.get(key);
-    Assert.assertNotNull(wrapper);
-    Assert.assertNull(value, wrapper.get());
+    assertNotNull(wrapper);
+    assertNull(wrapper.get());
   }
 
   /**
    * Test for {@link DynamoCache#get{T}(Object)}.
    */
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void getWithCast() {
-    final String key = "key";
-    final String value = "value";
+    assertThrows(IllegalStateException.class, () -> {
 
-    cache.put(key, value);
-    cache.get(key, Double.class);
+      final String key = "key";
+      final String value = "value";
+
+      cache.put(key, value);
+      cache.get(key, Double.class);
+    });
   }
 
   /**
@@ -205,10 +200,10 @@ public class DynamoCacheTest {
     cache.put(key, value);
 
     String valueInCache = cache.get(key, String.class);
-    Assert.assertEquals(value, valueInCache);
+    assertEquals(value, valueInCache);
 
     valueInCache = cache.get("key1", String.class);
-    Assert.assertNull(valueInCache);
+    assertNull(valueInCache);
 
     cache.get(key, Double.class);
   }
@@ -224,7 +219,7 @@ public class DynamoCacheTest {
     cache.evict(key);
 
     final Cache.ValueWrapper wrapper = cache.get(key);
-    Assert.assertNull(wrapper);
+    assertNull(wrapper);
   }
 
   /**
@@ -236,8 +231,8 @@ public class DynamoCacheTest {
     final String value = "value";
 
     cache.put(key, value);
-    Assert.assertNotNull(cache.get(key));
-    Assert.assertEquals(value, cache.get(key).get());
+    assertNotNull(cache.get(key));
+    assertEquals(value, cache.get(key).get());
   }
 
   /**
@@ -249,8 +244,8 @@ public class DynamoCacheTest {
     final String value = null;
 
     cache.put(key, value);
-    Assert.assertNotNull(cache.get(key));
-    Assert.assertEquals(value, cache.get(key).get());
+    assertNotNull(cache.get(key));
+    assertEquals(value, cache.get(key).get());
   }
 
   /**
@@ -263,9 +258,9 @@ public class DynamoCacheTest {
 
     Cache.ValueWrapper wrapper = cache.putIfAbsent(key, value);
 
-    Assert.assertNull(wrapper);
-    Assert.assertNotNull(cache.get(key));
-    Assert.assertEquals(value, cache.get(key).get());
+    assertNull(wrapper);
+    assertNotNull(cache.get(key));
+    assertEquals(value, cache.get(key).get());
   }
 
   /**
@@ -278,9 +273,9 @@ public class DynamoCacheTest {
 
     Cache.ValueWrapper wrapper = cache.putIfAbsent(key, value);
 
-    Assert.assertNull(wrapper);
-    Assert.assertNotNull(cache.get(key));
-    Assert.assertEquals(value, cache.get(key).get());
+    assertNull(wrapper);
+    assertNotNull(cache.get(key));
+    assertEquals(value, cache.get(key).get());
   }
 
   /**
@@ -295,8 +290,8 @@ public class DynamoCacheTest {
 
     Cache.ValueWrapper wrapper = cache.putIfAbsent(key, value);
 
-    Assert.assertNotNull(wrapper);
-    Assert.assertEquals(value, wrapper.get());
+    assertNotNull(wrapper);
+    assertEquals(value, wrapper.get());
   }
 
   @Test
@@ -309,7 +304,7 @@ public class DynamoCacheTest {
 
     Cache addressCache = new DynamoCache(CACHE_NAME, writer, config);
 
-    Assert.assertEquals(address, addressCache.get(key, () -> address));
+    assertEquals(address, addressCache.get(key, () -> address));
   }
 
   @Test
@@ -328,8 +323,8 @@ public class DynamoCacheTest {
       throw new IllegalStateException("Why call the value loader when we've got a cache entry?");
     });
 
-    Assert.assertNotNull(addressCache.get(key));
-    Assert.assertEquals(addressCache.get(key).get(), address);
+    assertNotNull(addressCache.get(key));
+    assertEquals(address, addressCache.get(key).get());
   }
 
   @Test
@@ -349,8 +344,8 @@ public class DynamoCacheTest {
     addressCache.put(itemKey, address);
 
     //then
-    Assert.assertNotNull(addressCache.get(itemKey));
-    Assert.assertEquals(addressCache.get(itemKey).get(), address);
+    assertNotNull(addressCache.get(itemKey));
+    assertEquals(address, addressCache.get(itemKey).get());
   }
 
   @Test
@@ -379,6 +374,6 @@ public class DynamoCacheTest {
       .build());
     AttributeValue storedRootAttribute = ddbItem.item().get(streetRootAttribute.getName());
 
-    Assert.assertEquals(storedRootAttribute.s(), address.getStreet());
+    assertEquals(address.getStreet(), storedRootAttribute.s());
   }
 }

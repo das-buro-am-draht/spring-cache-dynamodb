@@ -14,15 +14,16 @@
  */
 package com.dasburo.spring.cache.dynamo.serializer;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StringSerializerTest {
 
   private StringSerializer serializer;
 
-  @Before
+  @BeforeEach
   public void setup() {
     serializer = new StringSerializer();
   }
@@ -34,7 +35,7 @@ public class StringSerializerTest {
     byte[] serializedValue = serializer.serialize(expectedValue);
     String actualValue = serializer.deserialize(serializedValue);
 
-    Assert.assertEquals(expectedValue, actualValue);
+    assertEquals(expectedValue, actualValue);
   }
 
   @Test
@@ -44,7 +45,7 @@ public class StringSerializerTest {
     byte[] serializedValue = serializer.serialize(expectedValue);
     Object actualValue = serializer.deserialize(serializedValue);
 
-    Assert.assertEquals(expectedValue, actualValue);
+    assertEquals(expectedValue, actualValue);
   }
 
 }

@@ -1,7 +1,7 @@
 package com.dasburo.spring.cache.dynamo.rootattribute;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
@@ -9,15 +9,15 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 public class RootAttributeReaderTest {
 
   private RootAttributeReader rootAttributeReader;
 
-  @Before
+  @BeforeEach
   public void setup() {
     rootAttributeReader = new RootAttributeReader();
   }

@@ -19,23 +19,22 @@ import com.dasburo.spring.cache.dynamo.helper.Company;
 import com.dasburo.spring.cache.dynamo.helper.NotSerializeable;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
+import static org.mockito.Mockito.*;
 
 public class Jackson2JsonSerializerTest {
 
   private Jackson2JsonSerializer<Company> serializer;
 
-  @Before
+  @BeforeEach
   public void setup() {
     this.serializer = new Jackson2JsonSerializer<>(Company.class);
   }
@@ -43,36 +42,42 @@ public class Jackson2JsonSerializerTest {
   @Test
   public void testJackson2JsonSerializer() {
     Company company = new Company("company", "IT", 2019, new Address("street", 1));
-    Assert.assertEquals(company, serializer.deserialize(serializer.serialize(company)));
+    assertEquals(company, serializer.deserialize(serializer.serialize(company)));
   }
 
   @Test
   public void testJackson2JsonSerializer_ShouldReturnNullWhenSerializingNull() {
-    Assert.assertEquals(null, serializer.serialize(null));
+    assertEquals(null, serializer.serialize(null));
   }
 
   @Test
   public void testJackson2JsonSerializer_ShouldReturnNullWhenDeserializingEmptyByteArray() {
-    Assert.assertNull(serializer.deserialize(new byte[0]));
+    assertNull(serializer.deserialize(new byte[0]));
   }
 
-  @Test(expected = SerializationException.class)
+  @Test
   public void testSerializableSerializer_ShouldThrowExceptionWhenSerializingNonSerializableObject() {
-    serializer.serialize(new NotSerializeable());
+    Assertions.assertThrows(SerializationException.class, () ->
+      serializer.serialize(new NotSerializeable())
+    );
   }
 
-  @Test(expected = SerializationException.class)
-  public void testJackson2JsonSerilizer_ShouldThrowExceptionWhenDeserializingInvalidByteArray() {
+  @Test
+  public void testJackson2JsonSerializer_ShouldThrowExceptionWhenDeserializingInvalidByteArray() {
     Company company = new Company("company", "IT", 2019, new Address("street", 1));
     byte[] serializedValue = serializer.serialize(company);
     Arrays.sort(serializedValue); // corrupt serialization result
 
-    serializer.deserialize(serializedValue);
+    Assertions.assertThrows(SerializationException.class, () ->
+      serializer.deserialize(serializedValue)
+    );
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testJackson2JsonSerializer_ThrowsExceptionWhenSettingNullObjectMapper() {
-    serializer.setObjectMapper(null);
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
+      serializer.setObjectMapper(null)
+    );
   }
 
   @Test

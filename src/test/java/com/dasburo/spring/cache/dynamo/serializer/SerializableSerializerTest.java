@@ -15,36 +15,39 @@
 package com.dasburo.spring.cache.dynamo.serializer;
 
 import com.dasburo.spring.cache.dynamo.helper.NotSerializeable;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SerializableSerializerTest {
 
   private SerializableSerializer serializer;
 
-  @Before
+  @BeforeEach
   public void setup() {
     serializer = new SerializableSerializer();
   }
 
   @Test
   public void testSerializableSerializer() {
-    Assert.assertEquals("test", serializer.deserialize(serializer.serialize("test")));
+    assertEquals("test", serializer.deserialize(serializer.serialize("test")));
   }
 
   @Test
   public void testSerializableSerializer_ShouldReturnNullWhenDeSerializingNullObject() {
-    Assert.assertNull(serializer.deserialize(null));
+    assertNull(serializer.deserialize(null));
   }
 
   @Test
   public void testSerializableSerializer_ShouldReturnNullWhenSerializingNull() {
-    Assert.assertNull(serializer.deserialize(serializer.serialize(null)));
+    assertNull(serializer.deserialize(serializer.serialize(null)));
   }
 
-  @Test(expected = SerializationException.class)
+  @Test
   public void testSerializableSerializer_ShouldThrowExceptionWhenSerializingNonSerializableObject() {
-    serializer.serialize(new NotSerializeable());
+    assertThrows(SerializationException.class, () ->
+      serializer.serialize(new NotSerializeable())
+    );
   }
 }

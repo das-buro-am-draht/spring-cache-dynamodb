@@ -14,10 +14,11 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import org.junit.After;
-import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Unit test base.
@@ -28,7 +29,7 @@ public class UnitTestBase {
 
   protected AnnotationConfigApplicationContext context;
 
-  @After
+  @AfterEach
   public void close() {
     if (context != null) {
       context.close();
@@ -36,7 +37,7 @@ public class UnitTestBase {
   }
 
   protected void assertBeanExists(Class<?> bean) {
-    Assert.assertNotNull("The bean does not exist in the context.", context.containsBean(bean.getName()));
+    assertNotNull(context.containsBean(bean.getName()), "The bean does not exist in the context.");
   }
 
   protected AnnotationConfigApplicationContext load(Class<?>[] configs, String... environment) {
