@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,25 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.net.URI;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Spring Configuration for basic integration tests.
  *
- * @author BaD Georg Zimmermann
+ * @author Georg Zimmermann
  */
 @Configuration
 public class TestConfiguration {
@@ -36,31 +40,39 @@ public class TestConfiguration {
   private static final String ENDPOINT = "http://localhost:8090";
 
   @Bean
-  public AWSCredentialsProvider amazonAWSCredentialsProvider() {
-    return new AWSStaticCredentialsProvider(new BasicAWSCredentials("accessKey", "secretKey"));
+  public AwsCredentialsProvider awsCredentialsProvider() {
+    return StaticCredentialsProvider.create(
+      AwsBasicCredentials.create("accessKey", "secretKey"));
   }
 
   /**
-   * Gets a {@link com.amazonaws.services.dynamodbv2.AmazonDynamoDB} instance.
+   * Gets a {@link DynamoDbClient} instance.
    *
-   * @return the {@link com.amazonaws.services.dynamodbv2.AmazonDynamoDB} instance.
+   * @return the {@link DynamoDbClient} instance.
    */
   @Bean
-  public AmazonDynamoDB amazonDynamoDB(AWSCredentialsProvider amazonAWSCredentialsProvider) {
-    return AmazonDynamoDBClientBuilder.standard()
-      .withCredentials(amazonAWSCredentialsProvider)
-      .withClientConfiguration(
-        new ClientConfiguration()
-          .withRequestTimeout(5000)
-          .withConnectionTimeout(5000))
-      .withEndpointConfiguration(
-        new AwsClientBuilder
-          .EndpointConfiguration(ENDPOINT, Regions.EU_CENTRAL_1.getName()))
+  public DynamoDbClient amazonDynamoDB(AwsCredentialsProvider awsCredentialsProvider) {
+    ProxyConfiguration.Builder proxyConfig = ProxyConfiguration.builder();
+
+    ApacheHttpClient.Builder httpClientBuilder =
+      ApacheHttpClient.builder()
+        .proxyConfiguration(proxyConfig.build())
+        .connectionTimeout(Duration.of(5, ChronoUnit.SECONDS));
+
+    ClientOverrideConfiguration.Builder overrideConfig =
+      ClientOverrideConfiguration.builder();
+
+    return DynamoDbClient.builder()
+      .credentialsProvider(awsCredentialsProvider)
+      .httpClientBuilder(httpClientBuilder)
+      .overrideConfiguration(overrideConfig.build())
+      .endpointOverride(URI.create(ENDPOINT))
+      .region(Region.EU_CENTRAL_1)
       .build();
   }
 
   @Bean
-  public DynamoCacheWriter dynamoCacheWriter(AmazonDynamoDB amazonDynamoDB) {
+  public DynamoCacheWriter dynamoCacheWriter(DynamoDbClient amazonDynamoDB) {
     return DynamoCacheWriter.lockingDynamoCacheWriter(amazonDynamoDB);
   }
 

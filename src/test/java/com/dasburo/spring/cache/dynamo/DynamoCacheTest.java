@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  */
 package com.dasburo.spring.cache.dynamo;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.dasburo.spring.cache.dynamo.helper.Address;
 import com.dasburo.spring.cache.dynamo.rootattribute.RootAttributeConfig;
 import com.dasburo.spring.cache.dynamo.serializer.DynamoSerializer;
@@ -31,21 +28,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.time.Duration;
 import java.util.HashMap;
 
-import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 /**
  * Unit tests for {@link DynamoCache}.
  *
- * @author BaD Georg Zimmermann
+ * @author Georg Zimmermann
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
@@ -61,7 +63,7 @@ public class DynamoCacheTest {
   private DynamoCacheWriter writer;
 
   @Autowired
-  private AmazonDynamoDB ddbClient;
+  private DynamoDbClient ddbClient;
 
   private DynamoCache cache;
 
@@ -369,11 +371,14 @@ public class DynamoCacheTest {
 
     //then
     HashMap<String, AttributeValue> ddbKey = new HashMap<>();
-    ddbKey.put(DefaultDynamoCacheWriter.ATTRIBUTE_KEY, new AttributeValue(itemKey));
+    ddbKey.put(DefaultDynamoCacheWriter.ATTRIBUTE_KEY, AttributeValue.fromS(itemKey));
 
-    GetItemResult ddbItem = ddbClient.getItem(CACHE_NAME, ddbKey);
-    AttributeValue storedRootAttribute = ddbItem.getItem().get(streetRootAttribute.getName());
+    GetItemResponse ddbItem = ddbClient.getItem(GetItemRequest.builder()
+      .tableName(CACHE_NAME)
+      .key(ddbKey)
+      .build());
+    AttributeValue storedRootAttribute = ddbItem.item().get(streetRootAttribute.getName());
 
-    Assert.assertEquals(storedRootAttribute.getS(), address.getStreet());
+    Assert.assertEquals(storedRootAttribute.s(), address.getStreet());
   }
 }

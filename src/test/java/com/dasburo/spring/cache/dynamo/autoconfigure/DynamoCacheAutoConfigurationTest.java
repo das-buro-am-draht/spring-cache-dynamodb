@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 
-import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
-import static java.util.Arrays.asList;
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 /**
  * Unit tests for {@code DynamoCacheAutoConfiguration} class.
  *
- * @author BaD Georg Zimmermann
+ * @author Georg Zimmermann
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
@@ -48,7 +48,7 @@ public class DynamoCacheAutoConfigurationTest extends UnitTestBase {
   private static final Duration TTL = Duration.ofSeconds(30);
   private static final Long READ_CAPACITY_UNITS = 1L;
   private static final Long WRITE_CAPACITY_UNITS = 1L;
-  private static final List<RootAttributeConfig> ROOT_ATTRIBUTES = asList(new RootAttributeConfig("street", S));
+  private static final List<RootAttributeConfig> ROOT_ATTRIBUTES = Collections.singletonList(new RootAttributeConfig("street", S));
 
   @ClassRule
   public static TestDbCreationRule dynamoDB = new TestDbCreationRule();
