@@ -14,15 +14,16 @@ To integrate this Git repository into your project, simply add the maven depende
 <dependency>
     <groupId>com.dasburo</groupId>
     <artifactId>spring-cache-dynamodb</artifactId>
-    <version>0.9.6</version>
+    <version>2.0.0</version>
 </dependency>
 ```
+This release is using the AWS Java SDK v2.x. If you must use v1.x, please use a version prior to 2.0.0 of this library.
 
 ## Usage
 
 ### Quick start
 
-There is an autoconfiguration class that will setup a simple key-value cache for you, provided you have specified the following properties.
+There is an autoconfiguration class that will set up a simple key-value cache for you, provided you have specified the following properties.
 
 #### Properties
 
@@ -58,28 +59,29 @@ To customize the creation of a cache manager, create a Java Bean in a [configura
 
 ```java
 @Bean
-public AWSCredentials amazonAWSCredentials() {
-    return new BasicAWSCredentials(amazonAWSAccessKey, amazonAWSSecretKey);
+public AwsCredentials awsCredentials() {
+    return AwsBasicCredentials.create(amazonAWSAccessKey, amazonAWSSecretKey);
 }
 
 @Bean
-public AWSCredentialsProvider amazonAWSCredentialsProvider(AWSCredentials amazonAWSCredentials) {
-    return new AWSStaticCredentialsProvider(amazonAWSCredentials);
+public AwsCredentialsProvider awsCredentialsProvider(AwsCredentials awsCredentials) {
+    return StaticCredentialsProvider.create(awsCredentials);
 }
 
 @Bean
-public AmazonDynamoDB amazonDynamoDB(AWSCredentialsProvider amazonAWSCredentialsProvider) {
-    return AmazonDynamoDBClientBuilder.standard()
-      .withCredentials(amazonAWSCredentialsProvider)
-      .withRegion(Regions.EU_CENTRAL_1).build();
+public DynamoDbClient amazonDynamoDB(AwsCredentialsProvider awsCredentialsProvider) {
+    return DynamoDbClient.builder()
+        .credentialsProvider(awsCredentialsProvider)
+        .region(Region.of(amazonAWSRegion))
+        .build();
 }
 
 @Bean
-public CacheManager cacheManager(AmazonDynamoDB amazonDynamoDB) {
+public CacheManager cacheManager(DynamoDbClient ddb) {
     List<DynamoCacheBuilder> cacheBuilders = new ArrayList<>();
-    cacheBuilders.add(DynamoCacheBuilder.newInstance("myCache", amazonDynamoDB)
-        .withTTL(Duration.ofSeconds(600)));
-      
+    cacheBuilders.add(DynamoCacheBuilder.newInstance(cacheName, ddb)
+      .withTTL(Duration.ofSeconds(cacheTtl)));
+    
     return new DynamoCacheManager(cacheBuilders);
 }
 ```
