@@ -206,13 +206,13 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
 
   private byte[] getInternal(String name, String key) {
     final GetItemRequest request = GetItemRequest.builder()
-      .attributesToGet(ATTRIBUTE_VALUE)
+      .attributesToGet(ATTRIBUTE_VALUE, ATTRIBUTE_TTL)
       .tableName(name)
       .key(Collections.singletonMap(ATTRIBUTE_KEY, AttributeValue.fromS(key)))
       .build();
 
     final GetItemResponse result = dynamoTemplate.getItem(request);
-    if (result.hasItem()) {
+    if (result.hasItem() && !isPastTtl(result)) {
       return getAttributeValue(result);
     } else {
       throw new NoSuchElementException(String.format("No entry found for '%s'.", key));
@@ -232,6 +232,15 @@ public class DefaultDynamoCacheWriter implements DynamoCacheWriter {
     } else {
       return Objects.requireNonNull(element).asByteArray();
     }
+  }
+
+  private boolean isPastTtl(GetItemResponse result) {
+    final AttributeValue attributeTtl = result.item().get(ATTRIBUTE_TTL);
+    if (attributeTtl != null && attributeTtl.n() != null) {
+      Instant ttlInstant = Instant.ofEpochSecond(Long.parseLong(attributeTtl.n()));
+      return Instant.now().isAfter(ttlInstant);
+    }
+    return false;
   }
 
   private void putInternal(String name, String key, @Nullable byte[] value, @Nullable Duration ttl, @Nullable List<RootAttribute> rootAttributes) {
